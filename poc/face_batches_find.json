@@ -1,0 +1,325 @@
+[
+    {
+        "face_embedding_hash": 20409191053909342404023263132614013716,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.18 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.19 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.20 PM(3).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.32 PM(3).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.34 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.20 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.02 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.02 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.19 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.02 PM(3).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.20 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.03 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.33 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.02 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.33 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.01 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.03 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.34 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.25 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.03 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.01 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.20 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.20 PM(3).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.25 PM(2).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.26.18 PM.jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.26.19 PM.jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.26.20 PM(3).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.29.32 PM(3).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.34 PM.jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.26.20 PM.jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.28.02 PM(1).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.28.02 PM.jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.26.19 PM(2).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.28.02 PM(3).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.26.20 PM(2).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.28.03 PM(1).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.33 PM(2).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.28.02 PM(2).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.29.33 PM(1).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.28.01 PM.jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.28.03 PM.jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.29.34 PM.jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.30.25 PM(1).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.28.03 PM(1).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.28.01 PM.jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.26.20 PM(2).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.26.20 PM(3).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.30.25 PM(2).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 6786468263030019590261228175659707009,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.02 PM(3).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.20 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.02 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.34 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.25 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.25 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.20 PM(3).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.03 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.01 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.02 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.31 PM(3).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.02 PM(3).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.03 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.33 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.19 PM(2).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.28.02 PM(3).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.26.20 PM(2).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.28.02 PM(2).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.29.34 PM.jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.30.25 PM(2).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.30.25 PM(1).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.26.20 PM(3).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.28.03 PM(1).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.28.01 PM.jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.28.02 PM(1).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.31 PM(3).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.28.02 PM(3).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.28.03 PM.jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.29.33 PM(1).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.26.19 PM(2).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 316520942971665276584348418597641653938,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.02 PM(3).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.28.02 PM(3).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 333196026147084265591467619726567945039,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.20 PM(2).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.26.20 PM(2).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 214610859080372512897018607503550033891,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.26 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.25 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.26 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.03 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.25 PM(1).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.30.26 PM.jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.30.25 PM(2).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.30.26 PM(2).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.28.03 PM.jpeg",
+            "./faces/crop_4_WhatsApp Image 2024-11-22 at 4.30.25 PM(1).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 171105269843858456431094653472408274150,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.20 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.31 PM(3).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.31 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.32 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.32 PM(3).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.34 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.03 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.32 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.33 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.03 PM.jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.26.20 PM.jpeg",
+            "./faces/crop_4_WhatsApp Image 2024-11-22 at 4.29.31 PM(3).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.31 PM.jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.32 PM(1).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.32 PM(3).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.29.34 PM.jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.28.03 PM(1).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.32 PM.jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.29.33 PM(1).jpeg",
+            "./faces/crop_4_WhatsApp Image 2024-11-22 at 4.28.03 PM.jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 147505777391658022733492867354964019953,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.33 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.32 PM(3).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.33 PM(1).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.29.32 PM(3).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 70101168873947000049895487697779062447,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.33 PM(1).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_4_WhatsApp Image 2024-11-22 at 4.29.33 PM(1).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 200351350654829208058613634770057648730,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.20 PM(3).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.26.20 PM(3).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 14870335842853886012630498342742766878,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.31 PM(3).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.33 PM.jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.29.31 PM(3).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.29.33 PM.jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 224808036469676047848542792504170588218,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.33 PM.jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.33 PM.jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 153221578673073953445134526145220476841,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.33 PM.jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.29.33 PM.jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 183594308909771481924883748350884446919,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.03 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.33 PM.jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.28.03 PM(2).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.29.33 PM.jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 75923101366529428690523820143147895509,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.31 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.01 PM.jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.31 PM(2).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.28.01 PM.jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 50706387007603045047312418646072441721,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.25 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.31 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.26 PM(2).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.30.25 PM(1).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.29.31 PM(1).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.30.26 PM(2).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 165694714642492469422082162760018734787,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.25 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.31 PM(1).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.30.25 PM(1).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.31 PM(1).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 290795799672441969190701462580195007994,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.26.20 PM(1).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.26.20 PM(1).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 207065070677631936675050466885260057556,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.02 PM(1).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.28.02 PM(1).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 225047657524625467899149898399673401860,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.34 PM.jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_4_WhatsApp Image 2024-11-22 at 4.29.34 PM.jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 103781054334549698333846474121273178135,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.34 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.31 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.34 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.32 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.31 PM(3).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.33 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.28.03 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.29.32 PM(3).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.34 PM(1).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.31 PM.jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.29.34 PM.jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.32 PM.jpeg",
+            "./faces/crop_4_WhatsApp Image 2024-11-22 at 4.29.31 PM(3).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.29.33 PM(1).jpeg",
+            "./faces/crop_3_WhatsApp Image 2024-11-22 at 4.28.03 PM(1).jpeg",
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.29.32 PM(3).jpeg"
+        ]
+    },
+    {
+        "face_embedding_hash": 109530714117018563219341749713496286171,
+        "batch": [
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.25 PM.jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.25 PM(1).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.25 PM(2).jpeg",
+            "./photos/WhatsApp Image 2024-11-22 at 4.30.26 PM(2).jpeg"
+        ],
+        "crop_batch": [
+            "./faces/crop_1_WhatsApp Image 2024-11-22 at 4.30.25 PM.jpeg",
+            "./faces/crop_4_WhatsApp Image 2024-11-22 at 4.30.25 PM(1).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.30.25 PM(2).jpeg",
+            "./faces/crop_2_WhatsApp Image 2024-11-22 at 4.30.26 PM(2).jpeg"
+        ]
+    }
+]

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Batch Details</title>
+</head>
+<body>
+  <div class="detail-container">
+    <button id="back-button" class="back-button">Back</button>
+    <div id="image-grid" class="image-grid">
+      <!-- Images will be dynamically added here -->
+    </div>
+  </div>
+  <script>
+    const imageGrid = document.getElementById('image-grid');
+    const batchImages = JSON.parse(localStorage.getItem('batchImages') || '[]');
+    const backButton = document.getElementById('back-button');
+
+    // Populate the grid with batch images
+    batchImages.forEach(imagePath => {
+      const img = document.createElement('img');
+      img.src = imagePath;
+      img.alt = 'Batch Image';
+      img.className = 'grid-image';
+      imageGrid.appendChild(img);
+    });
+
+    // Go back to the main page
+    backButton.addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>
