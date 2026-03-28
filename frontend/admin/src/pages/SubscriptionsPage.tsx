@@ -24,8 +24,8 @@ export default function SubscriptionsPage() {
     setLoading(true);
     Promise.all([getSubscriptions(), getStudios()])
       .then(([subRes, studioRes]) => {
-        setSubscriptions(subRes.items);
-        setStudios(studioRes.items);
+        setSubscriptions(subRes);
+        setStudios(studioRes);
       })
       .catch(() => setError("Failed to load data."))
       .finally(() => setLoading(false));

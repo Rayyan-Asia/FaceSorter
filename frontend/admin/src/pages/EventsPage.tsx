@@ -8,7 +8,7 @@ export default function EventsPage() {
 
   useEffect(() => {
     getEvents()
-      .then((res) => setEvents(res.items))
+      .then((res) => setEvents(res))
       .catch(() => setError("Failed to load events."))
       .finally(() => setLoading(false));
   }, []);

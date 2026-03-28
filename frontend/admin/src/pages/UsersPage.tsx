@@ -10,7 +10,7 @@ export default function UsersPage() {
   function load() {
     setLoading(true);
     getUsers()
-      .then((res) => setUsers(res.items))
+      .then((res) => setUsers(res))
       .catch(() => setError("Failed to load users."))
       .finally(() => setLoading(false));
   }

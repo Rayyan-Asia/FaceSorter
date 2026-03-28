@@ -14,7 +14,7 @@ export default function StudiosPage() {
   function load() {
     setLoading(true);
     getStudios()
-      .then((res) => setStudios(res.items))
+      .then((res) => setStudios(res))
       .catch(() => setError("Failed to load studios."))
       .finally(() => setLoading(false));
   }
