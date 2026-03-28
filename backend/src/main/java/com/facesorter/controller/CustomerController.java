@@ -25,18 +25,28 @@ public class CustomerController {
     }
 
     /**
-     * Customer takes a self-photo; the frontend extracts the embedding and sends it here.
-     * Returns all matching photos from the event linked to their order.
+     * Step 1 of face-based photo retrieval.
+     * Customer submits their face embedding; returns the top 10 most similar face embeddings
+     * found in the event as candidates for the customer to confirm are them.
      */
     @PostMapping("/orders/{orderId}/search")
-    public ResponseEntity<FaceSearchResult> searchByFace(
+    public ResponseEntity<EmbeddingSearchResult> searchByFace(
             @PathVariable Long orderId,
             @Valid @RequestBody FaceSearchRequest request) {
-        // Ensure the search is scoped to the event linked to this order
         OrderDto order = orderService.getOrder(orderId);
         request.setEventId(order.getEventId());
+        return ResponseEntity.ok(faceService.searchEmbeddings(request));
+    }
 
-        return ResponseEntity.ok(faceService.searchFaces(request));
+    /**
+     * Step 2 of face-based photo retrieval.
+     * Customer confirms which embedding IDs are them; returns all photos linked to those embeddings.
+     */
+    @PostMapping("/orders/{orderId}/photos")
+    public ResponseEntity<FaceSearchResult> getPhotosByEmbeddings(
+            @PathVariable Long orderId,
+            @Valid @RequestBody PhotosByEmbeddingsRequest request) {
+        return ResponseEntity.ok(faceService.getPhotosByEmbeddingIds(request.getEmbeddingIds()));
     }
 
     /**

@@ -27,6 +27,9 @@ public class Photo {
     @Column(name = "local_path", nullable = false, length = 1000)
     private String localPath;
 
+    @Column(length = 2000)
+    private String url;
+
     @Column(nullable = false)
     private Boolean processed = false;
 

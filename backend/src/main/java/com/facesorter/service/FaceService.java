@@ -130,6 +130,67 @@ public class FaceService {
                 .build();
     }
 
+    /**
+     * Find the top 10 most similar face embeddings in the event for a given query embedding.
+     * Used by the customer portal step 1: show candidate faces for the customer to confirm.
+     */
+    @Transactional(readOnly = true)
+    public EmbeddingSearchResult searchEmbeddings(FaceSearchRequest request) {
+        String pgVectorLiteral = toVectorLiteral(request.getEmbedding());
+
+        List<FaceEmbedding> candidates = faceEmbeddingRepository.findSimilarInEvent(
+                request.getEventId(), pgVectorLiteral, similarityThreshold, 10);
+
+        List<EmbeddingSearchResult.EmbeddingCandidate> candidateDtos = candidates.stream()
+                .map(fe -> {
+                    Photo repPhoto = fe.getPhoto();
+                    return EmbeddingSearchResult.EmbeddingCandidate.builder()
+                            .embeddingId(fe.getId())
+                            .representativePhotoId(repPhoto != null ? repPhoto.getId() : null)
+                            .representativeFilename(repPhoto != null ? repPhoto.getFilename() : null)
+                            .build();
+                })
+                .toList();
+
+        return EmbeddingSearchResult.builder()
+                .candidates(candidateDtos)
+                .build();
+    }
+
+    /**
+     * Get all photos linked to the given embedding IDs.
+     * Used by the customer portal step 2: after the customer confirms which embeddings are them.
+     */
+    @Transactional(readOnly = true)
+    public FaceSearchResult getPhotosByEmbeddingIds(List<Long> embeddingIds) {
+        List<PersonPhotoLink> links = personPhotoLinkRepository.findByFaceEmbeddingIdIn(embeddingIds);
+
+        Map<Long, PersonPhotoLink> bestPerPhoto = new LinkedHashMap<>();
+        for (PersonPhotoLink link : links) {
+            Long photoId = link.getPhoto().getId();
+            bestPerPhoto.merge(photoId, link, (existing, candidate) -> {
+                if (candidate.getSimilarityScore() != null && existing.getSimilarityScore() != null) {
+                    return candidate.getSimilarityScore() > existing.getSimilarityScore() ? candidate : existing;
+                }
+                return existing;
+            });
+        }
+
+        List<FaceSearchResult.MatchedPhoto> matchedPhotos = bestPerPhoto.values().stream()
+                .map(link -> FaceSearchResult.MatchedPhoto.builder()
+                        .photoId(link.getPhoto().getId())
+                        .filename(link.getPhoto().getFilename())
+                        .localPath(link.getPhoto().getLocalPath())
+                        .similarityScore(link.getSimilarityScore() != null ? link.getSimilarityScore() : 0.0)
+                        .build())
+                .toList();
+
+        return FaceSearchResult.builder()
+                .matchedPhotos(matchedPhotos)
+                .totalMatches(matchedPhotos.size())
+                .build();
+    }
+
     private String toVectorLiteral(float[] embedding) {
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < embedding.length; i++) {

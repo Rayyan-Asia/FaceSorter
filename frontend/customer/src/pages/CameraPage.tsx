@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { searchFaces, type MatchedPhoto } from "../services/api";
+import { searchEmbeddings } from "../services/api";
 
 type Stage = "preview" | "capturing" | "reviewing" | "searching";
 
@@ -76,9 +76,9 @@ export default function CameraPage() {
     try {
       const res = await fetch(capturedImage);
       const blob = await res.blob();
-      const matches: MatchedPhoto[] = await searchFaces(orderId, blob);
+      const result = await searchEmbeddings(orderId, blob);
 
-      navigate(`/photos/${orderId}`, { state: { matches } });
+      navigate(`/select-face/${orderId}`, { state: { candidates: result.candidates } });
     } catch {
       setError("Face search failed. Please try again.");
       setStage("reviewing");

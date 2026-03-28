@@ -14,4 +14,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   extractEmbedding: (params) => ipcRenderer.invoke('python:extractEmbedding', params),
 
   saveTempPhoto: (params) => ipcRenderer.invoke('file:saveTempPhoto', params),
+
+  getDeviceBaseUrl: () => ipcRenderer.invoke('device:getBaseUrl'),
+  scanDirectory: (params) => ipcRenderer.invoke('fs:scanDirectory', params),
 });

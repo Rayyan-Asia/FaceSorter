@@ -13,6 +13,7 @@ public class PhotoDto {
     private Long eventId;
     private String filename;
     private String localPath;
+    private String url;
     private Boolean processed;
     private LocalDateTime createdAt;
 }

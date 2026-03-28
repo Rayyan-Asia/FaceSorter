@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import OrderEntryPage from "./pages/OrderEntryPage";
 import CameraPage from "./pages/CameraPage";
+import EmbeddingSelectPage from "./pages/EmbeddingSelectPage";
 import PhotoSelectPage from "./pages/PhotoSelectPage";
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<OrderEntryPage />} />
           <Route path="/camera/:orderId" element={<CameraPage />} />
+          <Route path="/select-face/:orderId" element={<EmbeddingSelectPage />} />
           <Route path="/photos/:orderId" element={<PhotoSelectPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

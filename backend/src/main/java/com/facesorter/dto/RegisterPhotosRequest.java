@@ -24,5 +24,6 @@ public class RegisterPhotosRequest {
     public static class PhotoEntry {
         private String filename;
         private String localPath;
+        private String url;
     }
 }

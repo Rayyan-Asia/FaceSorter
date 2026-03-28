@@ -1,0 +1,50 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: facesorter
+      POSTGRES_USER: facesorter
+      POSTGRES_PASSWORD: facesorter
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U facesorter"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: facesorter
+      DB_USERNAME: facesorter
+      DB_PASSWORD: facesorter
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      SERVER_PORT: 8080
+    depends_on:
+      db:
+        condition: service_healthy
+
+  admin:
+    build: ./frontend/admin
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend
+
+  customer:
+    build: ./frontend/customer
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

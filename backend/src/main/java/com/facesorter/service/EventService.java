@@ -59,6 +59,7 @@ public class EventService {
                         .event(event)
                         .filename(entry.getFilename())
                         .localPath(entry.getLocalPath())
+                        .url(entry.getUrl())
                         .processed(false)
                         .build())
                 .collect(Collectors.toList());
@@ -103,6 +104,7 @@ public class EventService {
                 .eventId(photo.getEvent().getId())
                 .filename(photo.getFilename())
                 .localPath(photo.getLocalPath())
+                .url(photo.getUrl())
                 .processed(photo.getProcessed())
                 .createdAt(photo.getCreatedAt())
                 .build();

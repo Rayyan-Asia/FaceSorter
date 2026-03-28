@@ -1,8 +1,94 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
+const http = require('http');
+const os = require('os');
 
 const isDev = process.env.NODE_ENV === 'development';
+
+function getPythonExecutable() {
+  if (isDev) {
+    return process.platform === 'win32' ? 'python' : 'python3';
+  }
+  if (process.platform === 'win32') {
+    return path.join(process.resourcesPath, 'scripts', 'venv', 'Scripts', 'python.exe');
+  }
+  return path.join(process.resourcesPath, 'scripts', 'venv', 'bin', 'python3');
+}
+
+function getScriptPath(scriptName) {
+  if (isDev) {
+    return path.join(__dirname, '../../scripts', scriptName);
+  }
+  return path.join(process.resourcesPath, 'scripts', scriptName);
+}
+
+function getLocalIpAddress() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return '127.0.0.1';
+}
+
+const PHOTO_SERVER_PORT = 4567;
+const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.webp']);
+
+const photoServer = http.createServer((req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET');
+
+  const reqUrl = new URL(req.url, `http://localhost:${PHOTO_SERVER_PORT}`);
+  if (reqUrl.pathname !== '/photo') {
+    res.writeHead(404);
+    res.end();
+    return;
+  }
+
+  const filePath = reqUrl.searchParams.get('path');
+  if (!filePath) {
+    res.writeHead(400);
+    res.end();
+    return;
+  }
+
+  const ext = path.extname(filePath).toLowerCase();
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    res.writeHead(403);
+    res.end();
+    return;
+  }
+
+  const fs = require('fs');
+  fs.stat(filePath, (err, stats) => {
+    if (err || !stats.isFile()) {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+
+    const mimeTypes = {
+      '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+      '.png': 'image/png', '.bmp': 'image/bmp',
+      '.tiff': 'image/tiff', '.tif': 'image/tiff',
+      '.webp': 'image/webp',
+    };
+
+    res.writeHead(200, {
+      'Content-Type': mimeTypes[ext] || 'application/octet-stream',
+      'Cache-Control': 'max-age=3600',
+    });
+    fs.createReadStream(filePath).pipe(res);
+  });
+});
+
+photoServer.listen(PHOTO_SERVER_PORT, () => {
+  console.log(`Photo file server listening on port ${PHOTO_SERVER_PORT}`);
+});
 
 let mainWindow;
 
@@ -59,9 +145,9 @@ ipcMain.handle('dialog:openDirectory', async () => {
 // IPC: Spawn the Python processing pipeline for an event
 ipcMain.handle('python:processEvent', async (event, { eventId, photosDir, apiBaseUrl }) => {
   return new Promise((resolve, reject) => {
-    const scriptPath = path.join(__dirname, '../../scripts/process_event.py');
+    const scriptPath = getScriptPath('process_event.py');
 
-    const proc = spawn('python3', [
+    const proc = spawn(getPythonExecutable(), [
       scriptPath,
       '--event-id', String(eventId),
       '--photos-dir', photosDir,
@@ -100,9 +186,9 @@ ipcMain.handle('python:processEvent', async (event, { eventId, photosDir, apiBas
 // IPC: Extract embedding from a single photo (for walk-in retrieval)
 ipcMain.handle('python:extractEmbedding', async (event, { imagePath }) => {
   return new Promise((resolve, reject) => {
-    const scriptPath = path.join(__dirname, '../../scripts/extract_embedding.py');
+    const scriptPath = getScriptPath('extract_embedding.py');
 
-    const proc = spawn('python3', [scriptPath, '--image', imagePath]);
+    const proc = spawn(getPythonExecutable(), [scriptPath, '--image', imagePath]);
 
     let stdout = '';
     let stderr = '';
@@ -145,4 +231,25 @@ ipcMain.handle('file:saveTempPhoto', async (event, { dataUrl }) => {
   fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
 
   return filePath;
+});
+
+// IPC: Get this device's base URL for the photo file server
+ipcMain.handle('device:getBaseUrl', () => {
+  return `http://${getLocalIpAddress()}:${PHOTO_SERVER_PORT}`;
+});
+
+// IPC: Scan a directory and return all image files
+ipcMain.handle('fs:scanDirectory', async (event, { dirPath }) => {
+  const fs = require('fs');
+  try {
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    return entries
+      .filter((e) => e.isFile() && ALLOWED_EXTENSIONS.has(path.extname(e.name).toLowerCase()))
+      .map((e) => ({
+        filename: e.name,
+        localPath: path.join(dirPath, e.name),
+      }));
+  } catch (err) {
+    return [];
+  }
 });
