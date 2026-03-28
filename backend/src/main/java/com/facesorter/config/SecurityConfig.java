@@ -42,7 +42,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
+        config.setAllowedOrigins(List.of(
+            "http://localhost:3000",   // customer portal (dev)
+            "http://localhost:3001",   // admin portal (dev + docker)
+            "http://localhost:5173",   // vite dev server
+            "http://localhost:5174"    // vite dev server (alternate port)
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
