@@ -49,6 +49,13 @@ public class EventService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<EventDto> getAllEvents() {
+        return eventRepository.findAll().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public List<PhotoDto> registerPhotos(RegisterPhotosRequest request) {
         Event event = eventRepository.findById(request.getEventId())
@@ -89,6 +96,7 @@ public class EventService {
         return EventDto.builder()
                 .id(event.getId())
                 .studioId(event.getStudio().getId())
+                .studioName(event.getStudio().getName())
                 .name(event.getName())
                 .description(event.getDescription())
                 .eventDate(event.getEventDate())

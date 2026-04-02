@@ -2,20 +2,21 @@ import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { eventsApi, ordersApi } from '../services/api';
+import { useAuthStore } from '../store/authStore';
 import Spinner from '../components/Spinner';
 
 export default function CreateOrderPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedEventId = searchParams.get('eventId') || '';
+  const user = useAuthStore((s) => s.user);
 
   const [selectedEventId, setSelectedEventId] = useState(preselectedEventId);
-  const [customerName, setCustomerName] = useState('');
   const [createdOrder, setCreatedOrder] = useState(null);
 
   const { data: events, isLoading: eventsLoading } = useQuery({
-    queryKey: ['events'],
-    queryFn: eventsApi.list,
+    queryKey: ['events', user?.studioId],
+    queryFn: () => eventsApi.list(user?.studioId),
   });
 
   const createMutation = useMutation({
@@ -30,7 +31,6 @@ export default function CreateOrderPage() {
     if (!selectedEventId) return;
     createMutation.mutate({
       eventId: Number(selectedEventId),
-      customerName: customerName.trim() || undefined,
     });
   };
 
@@ -44,14 +44,11 @@ export default function CreateOrderPage() {
             #{createdOrder.id}
           </p>
           <p className="text-sm text-gray-500 mb-6">
-            Give this number to the customer. They will use it to access their photos.
+            Order created. Proceed to retrieve the customer's photos in the next step.
           </p>
           <div className="flex gap-3 justify-center">
             <button
-              onClick={() => {
-                setCreatedOrder(null);
-                setCustomerName('');
-              }}
+              onClick={() => setCreatedOrder(null)}
               className="btn-secondary"
             >
               Create Another
@@ -60,10 +57,7 @@ export default function CreateOrderPage() {
               onClick={() => navigate(`/orders/${createdOrder.id}/walk-in`)}
               className="btn-primary"
             >
-              Walk-in Retrieval
-            </button>
-            <button onClick={() => navigate('/orders')} className="btn-secondary">
-              View Orders
+              Start Photo Retrieval
             </button>
           </div>
         </div>
@@ -101,19 +95,6 @@ export default function CreateOrderPage() {
                 ))}
               </select>
             )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Customer Name (optional)
-            </label>
-            <input
-              type="text"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              className="input-field"
-              placeholder="e.g. Mohammad Ali"
-            />
           </div>
 
           <button

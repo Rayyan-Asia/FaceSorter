@@ -38,17 +38,19 @@ export default function EventsPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {events.map((event) => {
+                const photoCount = event.totalPhotos ?? 0;
+                const processedCount = event.processedPhotos ?? 0;
                 const progress =
-                  event.photoCount > 0
-                    ? Math.round((event.processedCount / event.photoCount) * 100)
+                  photoCount > 0
+                    ? Math.round((processedCount / photoCount) * 100)
                     : 0;
 
                 return (
                   <tr key={event.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-900">{event.id}</td>
                     <td className="px-4 py-3 font-medium text-gray-900">{event.name}</td>
-                    <td className="px-4 py-3 text-gray-600">{event.studioName}</td>
-                    <td className="px-4 py-3 text-gray-600">{event.photoCount.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-gray-600">{event.studioName ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-600">{photoCount.toLocaleString()}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-[120px]">
@@ -58,12 +60,12 @@ export default function EventsPage() {
                           />
                         </div>
                         <span className="text-xs text-gray-500 whitespace-nowrap">
-                          {event.processedCount}/{event.photoCount}
+                          {processedCount}/{photoCount}
                         </span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-500">
-                      {new Date(event.createdAt).toLocaleDateString()}
+                      {event.createdAt ? new Date(event.createdAt).toLocaleDateString() : '—'}
                     </td>
                   </tr>
                 );

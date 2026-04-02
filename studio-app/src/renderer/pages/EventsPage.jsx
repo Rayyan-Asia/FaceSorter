@@ -2,18 +2,20 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { eventsApi } from '../services/api';
+import { useAuthStore } from '../store/authStore';
 import Spinner from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
 
 export default function EventsPage() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
   const [showCreate, setShowCreate] = useState(false);
   const [newEventName, setNewEventName] = useState('');
   const [newEventDate, setNewEventDate] = useState('');
 
   const { data: events, isLoading, error } = useQuery({
-    queryKey: ['events'],
-    queryFn: eventsApi.list,
+    queryKey: ['events', user?.studioId],
+    queryFn: () => eventsApi.list(user?.studioId),
   });
 
   const createMutation = useMutation({
@@ -29,7 +31,11 @@ export default function EventsPage() {
   const handleCreate = (e) => {
     e.preventDefault();
     if (!newEventName.trim()) return;
-    createMutation.mutate({ name: newEventName.trim(), date: newEventDate || undefined });
+    createMutation.mutate({
+      studioId: user?.studioId,
+      name: newEventName.trim(),
+      eventDate: newEventDate || undefined,
+    });
   };
 
   return (
@@ -117,11 +123,11 @@ export default function EventsPage() {
               )}
               <div className="flex gap-2 mt-3">
                 <span className="badge-blue">
-                  {event.photoCount ?? 0} photos
+                  {event.totalPhotos ?? 0} photos
                 </span>
-                {event.processedCount != null && (
+                {event.processedPhotos != null && (
                   <span className="badge-green">
-                    {event.processedCount} processed
+                    {event.processedPhotos} processed
                   </span>
                 )}
               </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { eventsApi, photosApi } from '../services/api';
+import { eventsApi } from '../services/api';
 import Spinner from '../components/Spinner';
 
 export default function EventDetailPage() {
@@ -12,10 +12,6 @@ export default function EventDetailPage() {
     queryFn: () => eventsApi.get(eventId),
   });
 
-  const { data: stats } = useQuery({
-    queryKey: ['events', eventId, 'stats'],
-    queryFn: () => photosApi.getStats(eventId),
-  });
 
   if (eventLoading) {
     return (
@@ -44,19 +40,19 @@ export default function EventDetailPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="card text-center">
           <p className="text-3xl font-bold text-primary-600">
-            {stats?.totalPhotos ?? event.photoCount ?? 0}
+            {event.totalPhotos ?? 0}
           </p>
           <p className="text-sm text-gray-500 mt-1">Total Photos</p>
         </div>
         <div className="card text-center">
           <p className="text-3xl font-bold text-green-600">
-            {stats?.processedPhotos ?? 0}
+            {event.processedPhotos ?? 0}
           </p>
           <p className="text-sm text-gray-500 mt-1">Processed</p>
         </div>
         <div className="card text-center">
           <p className="text-3xl font-bold text-yellow-600">
-            {stats?.facesDetected ?? 0}
+            {event.faceCount ?? 0}
           </p>
           <p className="text-sm text-gray-500 mt-1">Faces Detected</p>
         </div>

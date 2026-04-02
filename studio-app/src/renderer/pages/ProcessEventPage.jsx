@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { eventsApi } from '../services/api';
+import { eventsApi, photosApi } from '../services/api';
 import { API_BASE_URL } from '../services/api';
+import { useAuthStore } from '../store/authStore';
 import Spinner from '../components/Spinner';
+
+function deriveDirectory(localPath) {
+  if (!localPath) return null;
+  const lastSlash = Math.max(localPath.lastIndexOf('/'), localPath.lastIndexOf('\\'));
+  return lastSlash > 0 ? localPath.substring(0, lastSlash) : null;
+}
 
 export default function ProcessEventPage() {
   const { eventId } = useParams();
@@ -12,10 +19,20 @@ export default function ProcessEventPage() {
   const [logs, setLogs] = useState([]);
   const logsEndRef = useRef(null);
 
+  const token = useAuthStore((s) => s.token);
+
   const { data: event } = useQuery({
     queryKey: ['events', eventId],
     queryFn: () => eventsApi.get(eventId),
   });
+
+  const { data: unprocessedPhotos } = useQuery({
+    queryKey: ['photos', eventId, 'unprocessed'],
+    queryFn: () => photosApi.listUnprocessed(eventId),
+  });
+
+  const photosDir = deriveDirectory(unprocessedPhotos?.[0]?.localPath);
+  const canProcess = !!photosDir && unprocessedPhotos?.length > 0;
 
   useEffect(() => {
     if (!window.electronAPI) return;
@@ -39,23 +56,27 @@ export default function ProcessEventPage() {
       return;
     }
 
-    if (!event?.photosDirectory) {
-      alert('No photos directory registered for this event. Upload photos first.');
-      return;
-    }
-
     setProcessing(true);
     setResult(null);
     setLogs([]);
 
     const res = await window.electronAPI.processEvent({
       eventId: Number(eventId),
-      photosDir: event.photosDirectory,
+      photosDir,
       apiBaseUrl: API_BASE_URL,
+      token,
     });
 
     setResult(res);
     setProcessing(false);
+  };
+
+  const handleStop = async () => {
+    if (!window.electronAPI) return;
+    await window.electronAPI.stopProcessEvent({ eventId: Number(eventId) });
+    setProcessing(false);
+    setResult({ success: false, code: -1 });
+    setLogs((prev) => [...prev, 'Processing stopped by user.']);
   };
 
   return (
@@ -77,32 +98,49 @@ export default function ProcessEventPage() {
           unprocessed photos. Already-processed photos are skipped.
         </p>
 
-        {event?.photosDirectory ? (
+        {unprocessedPhotos === undefined ? (
+          <div className="flex items-center gap-2 mb-4">
+            <Spinner size="sm" />
+            <span className="text-sm text-gray-500">Loading photos...</span>
+          </div>
+        ) : canProcess ? (
           <p className="text-sm text-gray-600 mb-4">
-            Photos directory: <span className="font-mono">{event.photosDirectory}</span>
+            <span className="font-semibold">{unprocessedPhotos.length}</span> unprocessed photo{unprocessedPhotos.length !== 1 ? 's' : ''} in{' '}
+            <span className="font-mono">{photosDir}</span>
           </p>
         ) : (
           <p className="text-sm text-yellow-600 mb-4">
-            No photos directory registered.{' '}
+            No unprocessed photos found.{' '}
             <Link to={`/events/${eventId}/upload`} className="underline">
               Upload photos first
             </Link>.
           </p>
         )}
 
-        <button
-          onClick={handleProcess}
-          disabled={processing || !event?.photosDirectory}
-          className="btn-primary"
-        >
-          {processing ? (
-            <span className="flex items-center gap-2">
-              <Spinner size="sm" /> Processing...
-            </span>
-          ) : (
-            'Start Processing'
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleProcess}
+            disabled={processing || !canProcess}
+            className="btn-primary"
+          >
+            {processing ? (
+              <span className="flex items-center gap-2">
+                <Spinner size="sm" /> Processing...
+              </span>
+            ) : (
+              'Start Processing'
+            )}
+          </button>
+
+          {processing && (
+            <button
+              onClick={handleStop}
+              className="btn-secondary text-red-600 border-red-300 hover:bg-red-50"
+            >
+              Stop
+            </button>
           )}
-        </button>
+        </div>
 
         {result && (
           <div className={`mt-4 p-3 rounded-lg text-sm ${
@@ -110,6 +148,8 @@ export default function ProcessEventPage() {
           }`}>
             {result.success
               ? 'Processing completed successfully.'
+              : result.code === -1
+              ? 'Processing was stopped.'
               : `Processing failed (exit code ${result.code}). Check the logs below.`}
           </div>
         )}

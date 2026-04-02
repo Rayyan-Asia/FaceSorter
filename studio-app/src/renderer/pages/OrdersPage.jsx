@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { ordersApi } from '../services/api';
+import { useAuthStore } from '../store/authStore';
 import Spinner from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
 
@@ -14,11 +15,16 @@ const STATUS_BADGE = {
 
 export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState('');
+  const user = useAuthStore((s) => s.user);
 
-  const { data: orders, isLoading, error } = useQuery({
-    queryKey: ['orders', statusFilter],
-    queryFn: () => ordersApi.list(statusFilter ? { status: statusFilter } : {}),
+  const { data: allOrders, isLoading, error } = useQuery({
+    queryKey: ['orders', user?.studioId],
+    queryFn: () => ordersApi.list(user?.studioId),
   });
+
+  const orders = statusFilter
+    ? allOrders?.filter((o) => o.status === statusFilter)
+    : allOrders;
 
   return (
     <div>
@@ -30,7 +36,7 @@ export default function OrdersPage() {
       </div>
 
       <div className="flex gap-2 mb-4">
-        {['', 'PENDING', 'CONFIRMED', 'FULFILLED'].map((status) => (
+        {['', 'CREATED', 'PENDING', 'CONFIRMED', 'FULFILLED'].map((status) => (
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
@@ -86,12 +92,12 @@ export default function OrdersPage() {
                 )}
               </div>
               <div className="flex gap-2">
-                {order.status === 'PENDING' && (
+                {(order.status === 'CREATED' || order.status === 'PENDING') && (
                   <Link
                     to={`/orders/${order.id}/walk-in`}
                     className="btn-secondary text-sm"
                   >
-                    Walk-in Retrieval
+                    Photo Retrieval
                   </Link>
                 )}
               </div>

@@ -15,4 +15,6 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     Optional<Subscription> findByStudioIdAndActiveTrue(Long studioId);
 
     boolean existsByStudioIdAndActiveTrue(Long studioId);
+
+    long countByActiveTrue();
 }

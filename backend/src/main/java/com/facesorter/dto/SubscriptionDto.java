@@ -12,6 +12,9 @@ import java.time.LocalDate;
 public class SubscriptionDto {
     private Long id;
     private Long studioId;
+    private String studioName;
+    private String plan;
+    private String status;
     private LocalDate startDate;
     private LocalDate endDate;
     private String paymentMethod;

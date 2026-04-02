@@ -13,6 +13,7 @@ public class OrderDto {
     private Long id;
     private Long userId;
     private Long eventId;
+    private String eventName;
     private Long studioId;
     private String status;
     private List<OrderItemDto> orderItems;

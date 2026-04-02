@@ -16,7 +16,7 @@ export default function PhotoUploadPage() {
   const [deviceBaseUrl, setDeviceBaseUrl] = useState(null);
 
   const registerMutation = useMutation({
-    mutationFn: (photos) => photosApi.register(eventId, photos),
+    mutationFn: (photos) => photosApi.register(Number(eventId), photos),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events', eventId] });
     },

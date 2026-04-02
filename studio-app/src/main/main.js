@@ -142,8 +142,11 @@ ipcMain.handle('dialog:openDirectory', async () => {
   return result.filePaths[0];
 });
 
+// Track active processing processes keyed by eventId
+const activeProcesses = new Map();
+
 // IPC: Spawn the Python processing pipeline for an event
-ipcMain.handle('python:processEvent', async (event, { eventId, photosDir, apiBaseUrl }) => {
+ipcMain.handle('python:processEvent', async (event, { eventId, photosDir, apiBaseUrl, token }) => {
   return new Promise((resolve, reject) => {
     const scriptPath = getScriptPath('process_event.py');
 
@@ -152,7 +155,10 @@ ipcMain.handle('python:processEvent', async (event, { eventId, photosDir, apiBas
       '--event-id', String(eventId),
       '--photos-dir', photosDir,
       '--api-url', apiBaseUrl,
+      '--token', token,
     ]);
+
+    activeProcesses.set(eventId, proc);
 
     let stdout = '';
     let stderr = '';
@@ -170,6 +176,7 @@ ipcMain.handle('python:processEvent', async (event, { eventId, photosDir, apiBas
     });
 
     proc.on('close', (code) => {
+      activeProcesses.delete(eventId);
       if (code === 0) {
         resolve({ success: true, stdout });
       } else {
@@ -178,9 +185,21 @@ ipcMain.handle('python:processEvent', async (event, { eventId, photosDir, apiBas
     });
 
     proc.on('error', (err) => {
+      activeProcesses.delete(eventId);
       resolve({ success: false, error: err.message });
     });
   });
+});
+
+// IPC: Stop an active processing pipeline for an event
+ipcMain.handle('python:stopProcessEvent', async (event, { eventId }) => {
+  const proc = activeProcesses.get(eventId);
+  if (proc) {
+    proc.kill('SIGTERM');
+    activeProcesses.delete(eventId);
+    return { stopped: true };
+  }
+  return { stopped: false };
 });
 
 // IPC: Extract embedding from a single photo (for walk-in retrieval)

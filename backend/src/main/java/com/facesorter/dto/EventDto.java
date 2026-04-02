@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class EventDto {
     private Long id;
     private Long studioId;
+    private String studioName;
     private String name;
     private String description;
     private LocalDate eventDate;

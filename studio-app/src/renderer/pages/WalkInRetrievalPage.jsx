@@ -21,7 +21,10 @@ export default function WalkInRetrievalPage() {
   });
 
   const finalizeMutation = useMutation({
-    mutationFn: ({ orderId, photoIds }) => ordersApi.addItems(orderId, photoIds),
+    mutationFn: async ({ orderId, photoIds }) => {
+      await ordersApi.addItems(orderId, photoIds);
+      await ordersApi.updateStatus(orderId, 'PENDING');
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       setStep('confirm');

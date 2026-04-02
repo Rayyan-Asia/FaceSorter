@@ -1,16 +1,20 @@
 package com.facesorter.controller;
 
 import com.facesorter.dto.*;
-import com.facesorter.entity.*;
+import com.facesorter.entity.Studio;
+import com.facesorter.entity.Subscription;
+import com.facesorter.entity.User;
 import com.facesorter.repository.*;
 import com.facesorter.service.EventService;
 import com.facesorter.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -21,8 +25,24 @@ public class AdminController {
     private final StudioRepository studioRepository;
     private final UserRepository userRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final EventRepository eventRepository;
+    private final OrderRepository orderRepository;
     private final EventService eventService;
     private final OrderService orderService;
+
+    // --- Dashboard ---
+
+    @GetMapping("/dashboard/stats")
+    public ResponseEntity<Map<String, Long>> getDashboardStats() {
+        Map<String, Long> stats = Map.of(
+                "totalStudios", studioRepository.count(),
+                "totalUsers", userRepository.count(),
+                "totalEvents", eventRepository.count(),
+                "activeSubscriptions", subscriptionRepository.countByActiveTrue(),
+                "totalOrders", orderRepository.count()
+        );
+        return ResponseEntity.ok(stats);
+    }
 
     // --- Studios ---
 
@@ -86,6 +106,7 @@ public class AdminController {
 
     // --- Subscriptions ---
 
+    @Transactional(readOnly = true)
     @GetMapping("/subscriptions")
     public ResponseEntity<List<SubscriptionDto>> getAllSubscriptions() {
         List<SubscriptionDto> subs = subscriptionRepository.findAll().stream()
@@ -94,6 +115,7 @@ public class AdminController {
         return ResponseEntity.ok(subs);
     }
 
+    @Transactional
     @PostMapping("/subscriptions")
     public ResponseEntity<SubscriptionDto> createSubscription(
             @Valid @RequestBody CreateSubscriptionRequest request) {
@@ -116,16 +138,15 @@ public class AdminController {
 
     @GetMapping("/events")
     public ResponseEntity<List<EventDto>> getAllEvents() {
-        List<EventDto> events = eventService.getEventsByStudio(null);
-        // For admin, return all events
-        List<Event> allEvents = new java.util.ArrayList<>();
-        studioRepository.findAll().forEach(s ->
-                allEvents.addAll(s.getEvents()));
-        // Reuse event service for individual lookups
-        return ResponseEntity.ok(events);
+        return ResponseEntity.ok(eventService.getAllEvents());
     }
 
     // --- Orders (cross-studio view) ---
+
+    @GetMapping("/orders")
+    public ResponseEntity<List<OrderDto>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrders());
+    }
 
     @GetMapping("/orders/{id}")
     public ResponseEntity<OrderDto> getOrder(@PathVariable Long id) {
@@ -154,9 +175,20 @@ public class AdminController {
     }
 
     private SubscriptionDto toSubscriptionDto(Subscription sub) {
+        String status;
+        if (!Boolean.TRUE.equals(sub.getActive())) {
+            status = "expired";
+        } else if (sub.getEndDate() != null && sub.getEndDate().isBefore(java.time.LocalDate.now())) {
+            status = "expired";
+        } else {
+            status = "active";
+        }
         return SubscriptionDto.builder()
                 .id(sub.getId())
                 .studioId(sub.getStudio().getId())
+                .studioName(sub.getStudio().getName())
+                .plan("annual")
+                .status(status)
                 .startDate(sub.getStartDate())
                 .endDate(sub.getEndDate())
                 .paymentMethod(sub.getPaymentMethod())

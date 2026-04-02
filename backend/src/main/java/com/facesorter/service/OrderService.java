@@ -32,8 +32,11 @@ public class OrderService {
         Event event = eventRepository.findById(request.getEventId())
                 .orElseThrow(() -> new NoSuchElementException("Event not found: " + request.getEventId()));
 
-        Studio studio = studioRepository.findById(request.getStudioId())
-                .orElseThrow(() -> new NoSuchElementException("Studio not found: " + request.getStudioId()));
+        // Use the provided studioId, or fall back to the event's own studio
+        Studio studio = (request.getStudioId() != null)
+                ? studioRepository.findById(request.getStudioId())
+                        .orElseThrow(() -> new NoSuchElementException("Studio not found: " + request.getStudioId()))
+                : event.getStudio();
 
         Order order = Order.builder()
                 .event(event)
@@ -56,6 +59,13 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
         return toDto(order);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderDto> getAllOrders() {
+        return orderRepository.findAll().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -131,6 +141,7 @@ public class OrderService {
                 .id(order.getId())
                 .userId(order.getUser() != null ? order.getUser().getId() : null)
                 .eventId(order.getEvent().getId())
+                .eventName(order.getEvent().getName())
                 .studioId(order.getStudio().getId())
                 .status(order.getStatus())
                 .orderItems(items)

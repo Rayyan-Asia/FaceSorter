@@ -88,8 +88,8 @@ export interface Event {
   name: string;
   studioId: number;
   studioName: string;
-  photoCount: number;
-  processedCount: number;
+  totalPhotos: number;
+  processedPhotos: number;
   createdAt: string;
 }
 

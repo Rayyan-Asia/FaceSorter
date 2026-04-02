@@ -53,9 +53,9 @@ public class FaceService {
                 // Existing person found — link to this photo
                 faceEmbedding = matches.get(0);
             } else {
-                // New person — create embedding record
+                // New person — create embedding record (stored as pgvector text literal)
                 faceEmbedding = FaceEmbedding.builder()
-                        .embedding(embeddingVector)
+                        .embedding(pgVectorLiteral)
                         .photo(photo)
                         .event(event)
                         .build();

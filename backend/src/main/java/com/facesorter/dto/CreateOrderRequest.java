@@ -12,8 +12,7 @@ public class CreateOrderRequest {
     @NotNull
     private Long eventId;
 
-    @NotNull
-    private Long studioId;
+    private Long studioId; // optional — derived from the event's studio if null
 
     private Long userId;
 }

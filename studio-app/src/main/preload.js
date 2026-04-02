@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openDirectory: () => ipcRenderer.invoke('dialog:openDirectory'),
 
   processEvent: (params) => ipcRenderer.invoke('python:processEvent', params),
+  stopProcessEvent: (params) => ipcRenderer.invoke('python:stopProcessEvent', params),
 
   onProcessOutput: (callback) => {
     const handler = (_event, data) => callback(data);

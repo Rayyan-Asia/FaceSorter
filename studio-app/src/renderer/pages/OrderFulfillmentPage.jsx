@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersApi } from '../services/api';
+import { useAuthStore } from '../store/authStore';
 import Spinner from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
 
@@ -11,15 +12,11 @@ const STATUS_FLOW = {
 
 export default function OrderFulfillmentPage() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
 
-  const { data: orders, isLoading } = useQuery({
-    queryKey: ['orders', 'fulfillment'],
-    queryFn: () => ordersApi.list({ status: 'CONFIRMED' }),
-  });
-
-  const { data: pendingOrders } = useQuery({
-    queryKey: ['orders', 'pending'],
-    queryFn: () => ordersApi.list({ status: 'PENDING' }),
+  const { data: fetchedOrders, isLoading } = useQuery({
+    queryKey: ['orders', user?.studioId],
+    queryFn: () => ordersApi.list(user?.studioId),
   });
 
   const statusMutation = useMutation({
@@ -29,10 +26,9 @@ export default function OrderFulfillmentPage() {
     },
   });
 
-  const allOrders = [
-    ...(pendingOrders || []).map((o) => ({ ...o, _section: 'PENDING' })),
-    ...(orders || []).map((o) => ({ ...o, _section: 'CONFIRMED' })),
-  ];
+  const allOrders = (fetchedOrders || [])
+    .filter((o) => o.status === 'PENDING' || o.status === 'CONFIRMED')
+    .map((o) => ({ ...o, _section: o.status }));
 
   return (
     <div>
