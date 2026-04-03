@@ -171,9 +171,10 @@ export default function WalkInRetrievalPage() {
                     }`}
                   >
                     <img
-                      src={`http://localhost:4567/photo?path=${encodeURIComponent(photo.localPath)}`}
+                      src={`http://localhost:4567/photo?path=${encodeURIComponent(photo.localPath)}&w=400`}
                       alt={photo.filename}
                       className="w-full h-32 object-cover"
+                      loading="lazy"
                     />
                     {selectedPhotoIds.has(photo.photoId) && (
                       <div className="absolute top-2 right-2 w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center">

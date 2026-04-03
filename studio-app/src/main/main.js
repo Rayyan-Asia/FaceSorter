@@ -78,11 +78,26 @@ const photoServer = http.createServer((req, res) => {
       '.webp': 'image/webp',
     };
 
-    res.writeHead(200, {
-      'Content-Type': mimeTypes[ext] || 'application/octet-stream',
-      'Cache-Control': 'max-age=3600',
-    });
-    fs.createReadStream(filePath).pipe(res);
+    const widthParam = reqUrl.searchParams.get('w');
+    const thumbWidth = widthParam ? parseInt(widthParam, 10) : null;
+
+    if (thumbWidth && thumbWidth > 0) {
+      // Serve a resized thumbnail using sharp
+      try {
+        const sharp = require('sharp');
+        res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'max-age=86400' });
+        sharp(filePath).resize({ width: thumbWidth, withoutEnlargement: true }).jpeg({ quality: 80 }).pipe(res);
+      } catch (e) {
+        res.writeHead(500);
+        res.end();
+      }
+    } else {
+      res.writeHead(200, {
+        'Content-Type': mimeTypes[ext] || 'application/octet-stream',
+        'Cache-Control': 'max-age=3600',
+      });
+      fs.createReadStream(filePath).pipe(res);
+    }
   });
 });
 
