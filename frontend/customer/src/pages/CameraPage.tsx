@@ -4,6 +4,11 @@ import { searchEmbeddings } from "../services/api";
 
 type Stage = "preview" | "capturing" | "reviewing" | "searching";
 
+interface VideoDevice {
+  deviceId: string;
+  label: string;
+}
+
 export default function CameraPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
@@ -15,35 +20,65 @@ export default function CameraPage() {
   const [stage, setStage] = useState<Stage>("preview");
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const startCamera = useCallback(async () => {
-    setError(null);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
-        audio: false,
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setStage("preview");
-    } catch {
-      setError(
-        "Unable to access camera. Please allow camera permissions and try again.",
-      );
-    }
-  }, []);
+  const [devices, setDevices] = useState<VideoDevice[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
   }, []);
 
+  const startCamera = useCallback(
+    async (deviceId?: string) => {
+      setError(null);
+      stopCamera();
+      try {
+        const constraints: MediaStreamConstraints = {
+          video: deviceId
+            ? { deviceId: { exact: deviceId }, width: { ideal: 640 }, height: { ideal: 480 } }
+            : { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+          audio: false,
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        setStage("preview");
+
+        // Enumerate devices after permission is granted — labels are only available then
+        const allDevices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = allDevices
+          .filter((d) => d.kind === "videoinput")
+          .map((d, i) => ({
+            deviceId: d.deviceId,
+            label: d.label || `Camera ${i + 1}`,
+          }));
+        setDevices(videoDevices);
+
+        // Track which device is actually active
+        const activeTrack = stream.getVideoTracks()[0];
+        const activeDeviceId = activeTrack?.getSettings().deviceId ?? "";
+        setSelectedDeviceId(activeDeviceId);
+      } catch {
+        setError(
+          "Unable to access camera. Please allow camera permissions and try again.",
+        );
+      }
+    },
+    [stopCamera],
+  );
+
   useEffect(() => {
     startCamera();
     return stopCamera;
   }, [startCamera, stopCamera]);
+
+  function handleDeviceChange(deviceId: string) {
+    setSelectedDeviceId(deviceId);
+    startCamera(deviceId);
+  }
 
   function capturePhoto() {
     const video = videoRef.current;
@@ -64,7 +99,7 @@ export default function CameraPage() {
   function retake() {
     setCapturedImage(null);
     setError(null);
-    startCamera();
+    startCamera(selectedDeviceId || undefined);
   }
 
   async function submitPhoto() {
@@ -88,9 +123,31 @@ export default function CameraPage() {
   return (
     <div className="flex flex-col items-center">
       <h2 className="text-xl font-bold text-gray-900 mb-1">Take a Selfie</h2>
-      <p className="text-sm text-gray-500 mb-6 text-center">
+      <p className="text-sm text-gray-500 mb-4 text-center">
         Look directly at the camera so we can find your photos.
       </p>
+
+      {/* Camera selector — only shown when multiple cameras are available */}
+      {devices.length > 1 && stage !== "reviewing" && stage !== "searching" && (
+        <div className="w-full max-w-sm mb-4">
+          <label className="block text-xs font-medium text-gray-500 mb-1">
+            Camera
+          </label>
+          <select
+            value={selectedDeviceId}
+            onChange={(e) => handleDeviceChange(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm
+                       text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1
+                       focus:ring-blue-500"
+          >
+            {devices.map((d) => (
+              <option key={d.deviceId} value={d.deviceId}>
+                {d.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="relative w-full max-w-sm aspect-[3/4] bg-black rounded-xl overflow-hidden">
         {stage === "preview" && (
@@ -99,7 +156,7 @@ export default function CameraPage() {
             autoPlay
             playsInline
             muted
-            className="w-full h-full object-cover mirror"
+            className="w-full h-full object-cover"
             style={{ transform: "scaleX(-1)" }}
           />
         )}

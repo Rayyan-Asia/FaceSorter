@@ -6,7 +6,7 @@
   "scripts": {
     "start": "concurrently \"npm run dev:renderer\" \"wait-on http://localhost:5173 && npm run dev:main\"",
     "dev:renderer": "vite",
-    "dev:main": "cross-env NODE_ENV=development electron .",
+    "dev:main": "cross-env NODE_ENV=development electron . --remote-debugging-port=9222",
     "build:renderer": "vite build",
     "build": "npm run build:renderer && electron-builder",
     "lint": "eslint src/",

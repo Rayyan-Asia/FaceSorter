@@ -1,11 +1,11 @@
 """
-Extract the primary face embedding from a single image.
+Extract the primary face embedding from a single image using InsightFace (ArcFace).
 
 Usage:
     python extract_embedding.py --image <image_path>
 
 Outputs a JSON object to stdout:
-    {"embedding": [float, ...], "model": "Facenet"}
+    {"embedding": [float, ...], "model": "ArcFace"}
 
 Exit codes:
     0 — success
@@ -16,10 +16,9 @@ import argparse
 import sys
 import json
 import logging
+import os
 
-import cv2
-import numpy as np
-from deepface import DeepFace
+import gpu_config  # configures ONNX Runtime device before insightface loads
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,58 +27,57 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-MODEL_NAME = "Facenet"
-
-# RetinaFace is preferred for production; fall back to opencv if unavailable.
-try:
-    from retinaface import RetinaFace as _rf
-    DETECTOR_BACKEND = "retinaface"
-    logger.info("Using RetinaFace detector")
-except ImportError:
-    DETECTOR_BACKEND = "opencv"
-    logger.info("RetinaFace not available, falling back to OpenCV detector")
+MODEL_NAME = "ArcFace"
 
 
-def extract_embedding(image_path: str) -> list[float]:
-    """Detect the primary face in an image and return its FaceNet embedding.
+def get_face_app(providers):
+    import insightface
+    from insightface.app import FaceAnalysis
 
-    Uses enforce_detection=True so that images with no detectable face raise
-    an error rather than silently returning a garbage embedding.
-    """
-    representations = DeepFace.represent(
-        img_path=image_path,
-        model_name=MODEL_NAME,
-        detector_backend=DETECTOR_BACKEND,
-        enforce_detection=True,
+    # buffalo_l: RetinaFace detector + ArcFace recognition (512-dim embeddings)
+    app = FaceAnalysis(
+        name="buffalo_l",
+        providers=providers,
     )
+    app.prepare(ctx_id=0, det_size=(640, 640))
+    return app
 
-    if not representations:
-        raise ValueError("DeepFace returned no representations")
 
-    # Pick the face with the highest confidence (largest facial area as proxy).
-    primary = max(representations, key=lambda r: r.get("facial_area", {}).get("w", 0) * r.get("facial_area", {}).get("h", 0))
-    return primary["embedding"]
+def extract_embedding(image_path: str, app) -> list[float]:
+    import cv2
+
+    img = cv2.imread(image_path)
+    if img is None:
+        raise ValueError(f"Could not read image: {image_path}")
+
+    faces = app.get(img)
+    if not faces:
+        raise ValueError("No face detected in image")
+
+    # Pick the largest face (highest area) as the primary subject
+    primary = max(faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]))
+    return primary.embedding.tolist()
 
 
 def main():
+    device_info = gpu_config.configure(logger)
+    providers = device_info["providers"]
+
     parser = argparse.ArgumentParser(
-        description="Extract a FaceNet embedding from a single image.",
+        description="Extract an ArcFace embedding from a single image.",
     )
     parser.add_argument("--image", required=True, help="Path to the input image")
     args = parser.parse_args()
 
     try:
-        embedding = extract_embedding(args.image)
+        app = get_face_app(providers)
+        embedding = extract_embedding(args.image, app)
     except Exception as e:
         logger.error("Failed to extract embedding from %s: %s", args.image, e)
         print(json.dumps({"error": str(e)}))
         sys.exit(1)
 
-    result = {
-        "embedding": embedding,
-        "model": MODEL_NAME,
-    }
-    print(json.dumps(result))
+    print(json.dumps({"embedding": embedding, "model": MODEL_NAME}))
 
 
 if __name__ == "__main__":

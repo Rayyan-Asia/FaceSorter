@@ -64,8 +64,9 @@ export default function WalkInRetrievalPage() {
       }
 
       const results = await matchingApi.search(eventId, embedding);
-      setMatchedPhotos(results.photos || results || []);
-      setSelectedPhotoIds(new Set((results.photos || results || []).map((p) => p.id)));
+      const photos = results.matchedPhotos || [];
+      setMatchedPhotos(photos);
+      setSelectedPhotoIds(new Set(photos.map((p) => p.photoId)));
       setStep('results');
     } catch (err) {
       setSearchError(err.message || 'Search failed.');
@@ -136,7 +137,7 @@ export default function WalkInRetrievalPage() {
               </h2>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setSelectedPhotoIds(new Set(matchedPhotos.map((p) => p.id)))}
+                  onClick={() => setSelectedPhotoIds(new Set(matchedPhotos.map((p) => p.photoId)))}
                   className="text-sm text-primary-600 hover:underline"
                 >
                   Select All
@@ -161,20 +162,20 @@ export default function WalkInRetrievalPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {matchedPhotos.map((photo) => (
                   <div
-                    key={photo.id}
-                    onClick={() => togglePhoto(photo.id)}
+                    key={photo.photoId}
+                    onClick={() => togglePhoto(photo.photoId)}
                     className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-colors ${
-                      selectedPhotoIds.has(photo.id)
+                      selectedPhotoIds.has(photo.photoId)
                         ? 'border-primary-500'
                         : 'border-transparent hover:border-gray-300'
                     }`}
                   >
                     <img
-                      src={photo.thumbnailUrl || photo.url}
+                      src={`http://localhost:4567/photo?path=${encodeURIComponent(photo.localPath)}`}
                       alt={photo.filename}
                       className="w-full h-32 object-cover"
                     />
-                    {selectedPhotoIds.has(photo.id) && (
+                    {selectedPhotoIds.has(photo.photoId) && (
                       <div className="absolute top-2 right-2 w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center">
                         <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -182,9 +183,9 @@ export default function WalkInRetrievalPage() {
                       </div>
                     )}
                     <p className="text-xs text-gray-500 p-1 truncate">{photo.filename}</p>
-                    {photo.similarity != null && (
+                    {photo.similarityScore > 0 && (
                       <p className="text-xs text-gray-400 px-1 pb-1">
-                        {(photo.similarity * 100).toFixed(0)}% match
+                        {(photo.similarityScore * 100).toFixed(0)}% match
                       </p>
                     )}
                   </div>

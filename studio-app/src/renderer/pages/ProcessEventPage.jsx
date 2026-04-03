@@ -39,7 +39,8 @@ export default function ProcessEventPage() {
 
     const unsubscribe = window.electronAPI.onProcessOutput(({ eventId: eid, text }) => {
       if (String(eid) === String(eventId)) {
-        setLogs((prev) => [...prev, text]);
+        const lines = text.split('\n').filter((l) => l.trim().length > 0);
+        if (lines.length > 0) setLogs((prev) => [...prev, ...lines]);
       }
     });
 

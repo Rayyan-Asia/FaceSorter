@@ -223,13 +223,18 @@ ipcMain.handle('python:extractEmbedding', async (event, { imagePath }) => {
     proc.on('close', (code) => {
       if (code === 0) {
         try {
-          const embedding = JSON.parse(stdout.trim());
+          // InsightFace prints model-loading lines to stdout before the JSON — find the JSON line
+          const jsonLine = stdout.split('\n').map(l => l.trim()).find(l => l.startsWith('{'));
+          if (!jsonLine) throw new Error('No JSON line in output');
+          const parsed = JSON.parse(jsonLine);
+          const embedding = Array.isArray(parsed) ? parsed : parsed.embedding;
+          if (!embedding) throw new Error('No embedding field in JSON');
           resolve({ success: true, embedding });
-        } catch {
-          resolve({ success: false, error: 'Failed to parse embedding output' });
+        } catch (err) {
+          resolve({ success: false, error: `Failed to parse embedding output: ${err.message}. stdout: ${stdout.trim()}` });
         }
       } else {
-        resolve({ success: false, error: stderr });
+        resolve({ success: false, error: `Python exit code ${code}. stderr: ${stderr.trim()} stdout: ${stdout.trim()}` });
       }
     });
 
