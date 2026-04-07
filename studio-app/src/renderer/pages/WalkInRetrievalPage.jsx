@@ -14,6 +14,7 @@ export default function WalkInRetrievalPage() {
   const [matchedPhotos, setMatchedPhotos] = useState([]);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState(new Set());
   const [searchError, setSearchError] = useState(null);
+  const [threshold, setThreshold] = useState(0.65);
 
   const { data: order } = useQuery({
     queryKey: ['orders', orderId],
@@ -63,7 +64,7 @@ export default function WalkInRetrievalPage() {
         return;
       }
 
-      const results = await matchingApi.search(eventId, embedding);
+      const results = await matchingApi.search(eventId, embedding, threshold);
       const photos = results.matchedPhotos || [];
       setMatchedPhotos(photos);
       setSelectedPhotoIds(new Set(photos.map((p) => p.photoId)));
@@ -114,6 +115,29 @@ export default function WalkInRetrievalPage() {
             Position the customer facing the camera and capture their photo. The system
             will search for their photos in the event.
           </p>
+
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-gray-700">Match sensitivity</label>
+              <span className="text-sm font-semibold text-primary-600">
+                {threshold <= 0.45 ? 'Strict' : threshold <= 0.65 ? 'Balanced' : 'Broad'}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0.30"
+              max="0.90"
+              step="0.05"
+              value={threshold}
+              onChange={(e) => setThreshold(parseFloat(e.target.value))}
+              className="w-full accent-primary-500"
+            />
+            <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <span>Fewer, closer matches</span>
+              <span>More, looser matches</span>
+            </div>
+          </div>
+
           <CameraCapture
             onCapture={handleCapture}
             onCancel={() => navigate('/orders')}
@@ -132,9 +156,14 @@ export default function WalkInRetrievalPage() {
         <div>
           <div className="card mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">
-                {matchedPhotos.length} Matching Photos Found
-              </h2>
+              <div>
+                <h2 className="text-lg font-semibold">
+                  {matchedPhotos.length} Matching Photos Found
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Sensitivity: {threshold <= 0.45 ? 'Strict' : threshold <= 0.65 ? 'Balanced' : 'Broad'} ({threshold.toFixed(2)})
+                </p>
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setSelectedPhotoIds(new Set(matchedPhotos.map((p) => p.photoId)))}

@@ -85,9 +85,11 @@ public class FaceService {
     public FaceSearchResult searchFaces(FaceSearchRequest request) {
         String pgVectorLiteral = toVectorLiteral(request.getEmbedding());
 
+        double threshold = request.getThreshold() != null ? request.getThreshold() : similarityThreshold;
+
         // Find all similar face embeddings in this event
         List<FaceEmbedding> similarEmbeddings = faceEmbeddingRepository.findAllSimilarInEvent(
-                request.getEventId(), pgVectorLiteral, similarityThreshold);
+                request.getEventId(), pgVectorLiteral, threshold);
 
         if (similarEmbeddings.isEmpty()) {
             return FaceSearchResult.builder()

@@ -5,9 +5,9 @@ Call configure() once at startup — before loading InsightFace or any ONNX mode
 Returns a dict describing the selected device and ONNX Runtime providers to use.
 """
 
-import os
 import sys
 import subprocess
+import platform
 
 
 def _get_nvidia_info():
@@ -29,14 +29,39 @@ def _get_nvidia_info():
     return None, None
 
 
+def _get_apple_info():
+    """Query sysctl for Apple chip name and total memory. Returns (chip_name, mem_gb) or (None, None)."""
+    chip = None
+    mem_gb = None
+    try:
+        r = subprocess.run(["sysctl", "-n", "machdep.cpu.brand_string"],
+                           capture_output=True, text=True, timeout=5)
+        if r.returncode == 0:
+            chip = r.stdout.strip() or None
+    except Exception:
+        pass
+    try:
+        r = subprocess.run(["sysctl", "-n", "hw.memsize"],
+                           capture_output=True, text=True, timeout=5)
+        if r.returncode == 0:
+            mem_gb = round(int(r.stdout.strip()) / (1024 ** 3), 1)
+    except Exception:
+        pass
+    # Fallback: report architecture when chip string is unavailable
+    if not chip:
+        chip = f"Apple {platform.machine()}"
+    return chip, mem_gb
+
+
 def configure(logger=None):
     """
     Detect available compute device and return the best ONNX Runtime provider list.
 
     Provider priority:
-      1. DmlExecutionProvider  — DirectX 12 GPU (Windows, any vendor, no CUDA toolkit needed)
-      2. CUDAExecutionProvider — CUDA GPU (Linux / Windows with CUDA toolkit)
-      3. CPUExecutionProvider  — fallback
+      1. DmlExecutionProvider   — DirectX 12 GPU (Windows, any vendor, no CUDA toolkit needed)
+      2. CUDAExecutionProvider  — CUDA GPU (Linux / Windows with CUDA toolkit)
+      3. CoreMLExecutionProvider — Apple Silicon / Intel Mac via Core ML
+      4. CPUExecutionProvider   — fallback
 
     Returns:
         dict with keys:
@@ -89,6 +114,24 @@ def configure(logger=None):
                 "GPU (CUDA): "
                 + (gpu_name or "unknown GPU")
                 + (f" — {vram_gb} GB VRAM" if vram_gb else "")
+            )
+
+        elif "CoreMLExecutionProvider" in available:
+            # CoreML — macOS (Apple Silicon uses ANE/GPU; Intel Mac uses CPU via CoreML)
+            chip, mem_gb = _get_apple_info()
+            is_arm = platform.machine() == "arm64"
+            info.update({
+                "device": "GPU" if is_arm else "CPU",
+                "providers": ["CoreMLExecutionProvider", "CPUExecutionProvider"],
+                "gpu_name": chip,
+                "gpu_count": 1 if is_arm else 0,
+                "vram_gb": mem_gb,
+            })
+            label = "Apple Silicon (CoreML)" if is_arm else "Intel Mac (CoreML/CPU)"
+            msg = (
+                label + ": "
+                + (chip or "unknown chip")
+                + (f" — {mem_gb:.0f} GB unified memory" if mem_gb else "")
             )
 
         else:

@@ -14,4 +14,7 @@ public class FaceSearchRequest {
 
     @NotNull
     private float[] embedding;
+
+    /** Optional per-request override for the similarity threshold. Null = use server default. */
+    private Double threshold;
 }

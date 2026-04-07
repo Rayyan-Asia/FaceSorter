@@ -7,7 +7,13 @@ const os = require('os');
 const isDev = process.env.NODE_ENV === 'development';
 
 function getPythonExecutable() {
+  const venvPython = process.platform === 'win32'
+    ? path.join(__dirname, '../../scripts', 'venv', 'Scripts', 'python.exe')
+    : path.join(__dirname, '../../scripts', 'venv', 'bin', 'python3');
+
   if (isDev) {
+    const fs = require('fs');
+    if (fs.existsSync(venvPython)) return venvPython;
     return process.platform === 'win32' ? 'python' : 'python3';
   }
   if (process.platform === 'win32') {

@@ -63,8 +63,8 @@ export const ordersApi = {
 
 // Face matching
 export const matchingApi = {
-  search: (eventId, embedding) =>
-    api.post('/faces/search', { eventId, embedding }).then((r) => r.data),
+  search: (eventId, embedding, threshold) =>
+    api.post('/faces/search', { eventId, embedding, threshold }).then((r) => r.data),
 };
 
 // Auth
