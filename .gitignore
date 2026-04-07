@@ -1,3 +1,13 @@
+# Node
+node_modules/
+*.tsbuildinfo
+
+# Claude Code local settings (contains personal tokens/permissions)
+.claude/settings.local.json
+
+# Screenshots
+*.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
