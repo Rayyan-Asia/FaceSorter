@@ -12,6 +12,7 @@ export default function WalkInRetrievalPage() {
 
   const [step, setStep] = useState('camera'); // camera | searching | results | confirm
   const [capturedEmbedding, setCapturedEmbedding] = useState(null);
+  const [expandedPhoto, setExpandedPhoto] = useState(null);
   const [matchedPhotos, setMatchedPhotos] = useState([]);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState(new Set());
   const [searchError, setSearchError] = useState(null);
@@ -263,6 +264,15 @@ export default function WalkInRetrievalPage() {
                         </svg>
                       </div>
                     )}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setExpandedPhoto(photo); }}
+                      className="absolute bottom-8 right-1 w-6 h-6 bg-black/50 hover:bg-black/70 rounded flex items-center justify-center transition-colors"
+                      title="View full photo"
+                    >
+                      <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                      </svg>
+                    </button>
                     <p className="text-xs text-gray-500 p-1 truncate">{photo.filename}</p>
                     {photo.similarityScore > 0 && (
                       <p className="text-xs text-gray-400 px-1 pb-1">
@@ -295,6 +305,47 @@ export default function WalkInRetrievalPage() {
               Failed to finalize: {finalizeMutation.error?.message}
             </p>
           )}
+        </div>
+      )}
+
+      {expandedPhoto && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setExpandedPhoto(null)}
+        >
+          <div className="relative max-w-4xl max-h-full" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={`http://localhost:4567/photo?path=${encodeURIComponent(expandedPhoto.localPath)}`}
+              alt={expandedPhoto.filename}
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-black/50 rounded-b-lg px-4 py-2 flex items-center justify-between">
+              <div>
+                <p className="text-white text-sm font-medium">{expandedPhoto.filename}</p>
+                {expandedPhoto.similarityScore > 0 && (
+                  <p className="text-gray-300 text-xs">{(expandedPhoto.similarityScore * 100).toFixed(0)}% match</p>
+                )}
+              </div>
+              <button
+                onClick={() => { togglePhoto(expandedPhoto.photoId); setExpandedPhoto(null); }}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  selectedPhotoIds.has(expandedPhoto.photoId)
+                    ? 'bg-primary-500 text-white hover:bg-primary-600'
+                    : 'bg-white text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                {selectedPhotoIds.has(expandedPhoto.photoId) ? 'Deselect' : 'Select'}
+              </button>
+            </div>
+            <button
+              onClick={() => setExpandedPhoto(null)}
+              className="absolute top-2 right-2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition-colors"
+            >
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
       )}
 
