@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { eventsApi, ordersApi } from '../services/api';
@@ -13,6 +13,17 @@ export default function CreateOrderPage() {
 
   const [selectedEventId, setSelectedEventId] = useState(preselectedEventId);
   const [createdOrder, setCreatedOrder] = useState(null);
+  const [search, setSearch] = useState('');
+  const [open, setOpen] = useState(false);
+  const comboRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (comboRef.current && !comboRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const { data: events, isLoading: eventsLoading } = useQuery({
     queryKey: ['events', user?.studioId],
@@ -81,19 +92,43 @@ export default function CreateOrderPage() {
             {eventsLoading ? (
               <Spinner size="sm" />
             ) : (
-              <select
-                value={selectedEventId}
-                onChange={(e) => setSelectedEventId(e.target.value)}
-                className="input-field"
-                required
-              >
-                <option value="">Select an event</option>
-                {events?.map((ev) => (
-                  <option key={ev.id} value={ev.id}>
-                    {ev.name} {ev.date ? `(${ev.date})` : ''}
-                  </option>
-                ))}
-              </select>
+              <div ref={comboRef} className="relative">
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder={selectedEventId
+                    ? events?.find((ev) => String(ev.id) === String(selectedEventId))?.name ?? 'Select an event'
+                    : 'Search events...'}
+                  value={open ? search : (events?.find((ev) => String(ev.id) === String(selectedEventId))?.name ?? '')}
+                  onFocus={() => { setOpen(true); setSearch(''); }}
+                  onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
+                  required={!selectedEventId}
+                />
+                {open && (
+                  <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
+                    {(events ?? [])
+                      .filter((ev) => ev.name.toLowerCase().includes(search.toLowerCase()))
+                      .map((ev) => (
+                        <li
+                          key={ev.id}
+                          onMouseDown={() => {
+                            setSelectedEventId(String(ev.id));
+                            setOpen(false);
+                            setSearch('');
+                          }}
+                          className={`px-3 py-2 cursor-pointer text-sm hover:bg-primary-50 ${
+                            String(ev.id) === String(selectedEventId) ? 'bg-primary-50 font-medium' : ''
+                          }`}
+                        >
+                          {ev.name}{ev.eventDate ? ` (${ev.eventDate})` : ''}
+                        </li>
+                      ))}
+                    {(events ?? []).filter((ev) => ev.name.toLowerCase().includes(search.toLowerCase())).length === 0 && (
+                      <li className="px-3 py-2 text-sm text-gray-400">No events found</li>
+                    )}
+                  </ul>
+                )}
+              </div>
             )}
           </div>
 
