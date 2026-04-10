@@ -286,14 +286,21 @@ ipcMain.handle('device:getBaseUrl', () => {
 // IPC: Scan a directory and return all image files
 ipcMain.handle('fs:scanDirectory', async (event, { dirPath }) => {
   const fs = require('fs');
+  const crypto = require('crypto');
   try {
     const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-    return entries
-      .filter((e) => e.isFile() && ALLOWED_EXTENSIONS.has(path.extname(e.name).toLowerCase()))
-      .map((e) => ({
-        filename: e.name,
-        localPath: path.join(dirPath, e.name),
-      }));
+    const imageEntries = entries.filter(
+      (e) => e.isFile() && ALLOWED_EXTENSIONS.has(path.extname(e.name).toLowerCase())
+    );
+    return imageEntries.map((e) => {
+      const localPath = path.join(dirPath, e.name);
+      let fileHash = null;
+      try {
+        const buf = fs.readFileSync(localPath);
+        fileHash = crypto.createHash('sha256').update(buf).digest('hex');
+      } catch (_) {}
+      return { filename: e.name, localPath, fileHash };
+    });
   } catch (err) {
     return [];
   }

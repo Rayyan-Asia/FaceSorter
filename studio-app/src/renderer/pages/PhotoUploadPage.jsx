@@ -52,6 +52,7 @@ export default function PhotoUploadPage() {
       filename: f.filename,
       localPath: f.localPath,
       url: `${deviceBaseUrl}/photo?path=${encodeURIComponent(f.localPath)}`,
+      fileHash: f.fileHash,
     }));
 
     registerMutation.mutate(photos);

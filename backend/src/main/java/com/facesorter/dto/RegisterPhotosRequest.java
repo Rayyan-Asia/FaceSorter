@@ -25,5 +25,6 @@ public class RegisterPhotosRequest {
         private String filename;
         private String localPath;
         private String url;
+        private String fileHash;
     }
 }

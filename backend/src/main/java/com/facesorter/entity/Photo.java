@@ -30,6 +30,9 @@ public class Photo {
     @Column(length = 2000)
     private String url;
 
+    @Column(name = "file_hash", length = 64)
+    private String fileHash;
+
     @Column(nullable = false)
     private Boolean processed = false;
 

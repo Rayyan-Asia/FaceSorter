@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,12 +62,16 @@ public class EventService {
         Event event = eventRepository.findById(request.getEventId())
                 .orElseThrow(() -> new NoSuchElementException("Event not found: " + request.getEventId()));
 
+        Set<String> existingHashes = photoRepository.findFileHashByEventIdAndFileHashNotNull(event.getId());
+
         List<Photo> photos = request.getPhotos().stream()
+                .filter(entry -> entry.getFileHash() == null || !existingHashes.contains(entry.getFileHash()))
                 .map(entry -> Photo.builder()
                         .event(event)
                         .filename(entry.getFilename())
                         .localPath(entry.getLocalPath())
                         .url(entry.getUrl())
+                        .fileHash(entry.getFileHash())
                         .processed(false)
                         .build())
                 .collect(Collectors.toList());
