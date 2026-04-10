@@ -11,6 +11,7 @@ export default function WalkInRetrievalPage() {
   const queryClient = useQueryClient();
 
   const [step, setStep] = useState('camera'); // camera | searching | results | confirm
+  const [capturedEmbedding, setCapturedEmbedding] = useState(null);
   const [matchedPhotos, setMatchedPhotos] = useState([]);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState(new Set());
   const [searchError, setSearchError] = useState(null);
@@ -32,6 +33,29 @@ export default function WalkInRetrievalPage() {
     },
   });
 
+  const runSearch = async (embedding) => {
+    setStep('searching');
+    setSearchError(null);
+
+    try {
+      const eventId = order?.eventId;
+      if (!eventId) {
+        setSearchError('Order has no linked event.');
+        setStep('camera');
+        return;
+      }
+
+      const results = await matchingApi.search(eventId, embedding, threshold);
+      const photos = results.matchedPhotos || [];
+      setMatchedPhotos(photos);
+      setSelectedPhotoIds(new Set(photos.map((p) => p.photoId)));
+      setStep('results');
+    } catch (err) {
+      setSearchError(err.message || 'Search failed.');
+      setStep('results');
+    }
+  };
+
   const handleCapture = async (dataUrl) => {
     setStep('searching');
     setSearchError(null);
@@ -40,7 +64,6 @@ export default function WalkInRetrievalPage() {
       let embedding;
 
       if (window.electronAPI) {
-        // Save the captured photo to a temp file and extract embedding locally
         const filePath = await window.electronAPI.saveTempPhoto({ dataUrl });
         const result = await window.electronAPI.extractEmbedding({ imagePath: filePath });
 
@@ -56,23 +79,26 @@ export default function WalkInRetrievalPage() {
         return;
       }
 
-      // Search for matching photos in the event
-      const eventId = order?.eventId;
-      if (!eventId) {
-        setSearchError('Order has no linked event.');
-        setStep('camera');
-        return;
-      }
-
-      const results = await matchingApi.search(eventId, embedding, threshold);
-      const photos = results.matchedPhotos || [];
-      setMatchedPhotos(photos);
-      setSelectedPhotoIds(new Set(photos.map((p) => p.photoId)));
-      setStep('results');
+      setCapturedEmbedding(embedding);
+      await runSearch(embedding);
     } catch (err) {
       setSearchError(err.message || 'Search failed.');
       setStep('camera');
     }
+  };
+
+  const handleSearchAgain = () => {
+    if (capturedEmbedding) {
+      runSearch(capturedEmbedding);
+    }
+  };
+
+  const handleRetake = () => {
+    setCapturedEmbedding(null);
+    setMatchedPhotos([]);
+    setSelectedPhotoIds(new Set());
+    setSearchError(null);
+    setStep('camera');
   };
 
   const togglePhoto = (photoId) => {
@@ -154,15 +180,34 @@ export default function WalkInRetrievalPage() {
 
       {step === 'results' && (
         <div>
+          <div className="card mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-gray-700">Match sensitivity</label>
+              <span className="text-sm font-semibold text-primary-600">
+                {threshold <= 0.45 ? 'Strict' : threshold <= 0.65 ? 'Balanced' : 'Broad'} ({threshold.toFixed(2)})
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0.30"
+              max="0.90"
+              step="0.05"
+              value={threshold}
+              onChange={(e) => setThreshold(parseFloat(e.target.value))}
+              className="w-full accent-primary-500"
+            />
+            <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <span>Fewer, closer matches</span>
+              <span>More, looser matches</span>
+            </div>
+          </div>
+
           <div className="card mb-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-lg font-semibold">
                   {matchedPhotos.length} Matching Photos Found
                 </h2>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Sensitivity: {threshold <= 0.45 ? 'Strict' : threshold <= 0.65 ? 'Balanced' : 'Broad'} ({threshold.toFixed(2)})
-                </p>
               </div>
               <div className="flex gap-2">
                 <button
@@ -183,9 +228,15 @@ export default function WalkInRetrievalPage() {
             {matchedPhotos.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">No matching photos found.</p>
-                <button onClick={() => setStep('camera')} className="btn-secondary mt-4">
-                  Try Again
-                </button>
+                <p className="text-xs text-gray-400 mt-1">Try increasing the sensitivity slider above and search again.</p>
+                <div className="flex gap-3 justify-center mt-4">
+                  <button onClick={handleRetake} className="btn-secondary">
+                    Retake Photo
+                  </button>
+                  <button onClick={handleSearchAgain} className="btn-primary">
+                    Search Again
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -230,8 +281,11 @@ export default function WalkInRetrievalPage() {
                 {selectedPhotoIds.size} of {matchedPhotos.length} photos selected
               </p>
               <div className="flex gap-3">
-                <button onClick={() => setStep('camera')} className="btn-secondary">
+                <button onClick={handleRetake} className="btn-secondary">
                   Retake Photo
+                </button>
+                <button onClick={handleSearchAgain} className="btn-secondary">
+                  Search Again
                 </button>
                 <button
                   onClick={handleFinalize}
