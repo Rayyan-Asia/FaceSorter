@@ -200,6 +200,14 @@ export default function WalkInRetrievalPage() {
               <span>Fewer, closer matches</span>
               <span>More, looser matches</span>
             </div>
+            <div className="flex gap-3 mt-4">
+              <button onClick={handleRetake} className="btn-secondary">
+                Retake Photo
+              </button>
+              <button onClick={handleSearchAgain} className="btn-primary">
+                Search Again
+              </button>
+            </div>
           </div>
 
           <div className="card mb-6">
@@ -229,14 +237,6 @@ export default function WalkInRetrievalPage() {
               <div className="text-center py-8">
                 <p className="text-gray-500">No matching photos found.</p>
                 <p className="text-xs text-gray-400 mt-1">Try increasing the sensitivity slider above and search again.</p>
-                <div className="flex gap-3 justify-center mt-4">
-                  <button onClick={handleRetake} className="btn-secondary">
-                    Retake Photo
-                  </button>
-                  <button onClick={handleSearchAgain} className="btn-primary">
-                    Search Again
-                  </button>
-                </div>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -280,21 +280,13 @@ export default function WalkInRetrievalPage() {
               <p className="text-sm text-gray-500">
                 {selectedPhotoIds.size} of {matchedPhotos.length} photos selected
               </p>
-              <div className="flex gap-3">
-                <button onClick={handleRetake} className="btn-secondary">
-                  Retake Photo
-                </button>
-                <button onClick={handleSearchAgain} className="btn-secondary">
-                  Search Again
-                </button>
-                <button
-                  onClick={handleFinalize}
-                  disabled={selectedPhotoIds.size === 0 || finalizeMutation.isPending}
-                  className="btn-primary"
-                >
-                  {finalizeMutation.isPending ? 'Saving...' : 'Finalize Order'}
-                </button>
-              </div>
+              <button
+                onClick={handleFinalize}
+                disabled={selectedPhotoIds.size === 0 || finalizeMutation.isPending}
+                className="btn-primary"
+              >
+                {finalizeMutation.isPending ? 'Saving...' : 'Finalize Order'}
+              </button>
             </div>
           )}
 
