@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @RestController
@@ -68,7 +69,7 @@ public class AdminController {
     @PutMapping("/studios/{id}/activate")
     public ResponseEntity<StudioDto> activateStudio(@PathVariable Long id) {
         Studio studio = studioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Studio not found"));
+                .orElseThrow(() -> new NoSuchElementException("Studio not found"));
         studio.setActive(true);
         studio = studioRepository.save(studio);
         return ResponseEntity.ok(toStudioDto(studio));
@@ -77,7 +78,7 @@ public class AdminController {
     @PutMapping("/studios/{id}/deactivate")
     public ResponseEntity<StudioDto> deactivateStudio(@PathVariable Long id) {
         Studio studio = studioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Studio not found"));
+                .orElseThrow(() -> new NoSuchElementException("Studio not found"));
         studio.setActive(false);
         studio = studioRepository.save(studio);
         return ResponseEntity.ok(toStudioDto(studio));
@@ -120,7 +121,7 @@ public class AdminController {
     public ResponseEntity<SubscriptionDto> createSubscription(
             @Valid @RequestBody CreateSubscriptionRequest request) {
         Studio studio = studioRepository.findById(request.getStudioId())
-                .orElseThrow(() -> new RuntimeException("Studio not found"));
+                .orElseThrow(() -> new NoSuchElementException("Studio not found"));
 
         Subscription sub = Subscription.builder()
                 .studio(studio)

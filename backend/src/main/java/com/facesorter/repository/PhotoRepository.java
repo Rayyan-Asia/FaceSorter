@@ -2,6 +2,8 @@ package com.facesorter.repository;
 
 import com.facesorter.entity.Photo;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,5 +20,6 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
 
     long countByEventIdAndProcessedTrue(Long eventId);
 
-    Set<String> findFileHashByEventIdAndFileHashNotNull(Long eventId);
+    @Query("SELECT p.fileHash FROM Photo p WHERE p.event.id = :eventId AND p.fileHash IS NOT NULL")
+    Set<String> findFileHashByEventIdAndFileHashNotNull(@Param("eventId") Long eventId);
 }

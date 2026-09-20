@@ -2,6 +2,9 @@
 node_modules/
 *.tsbuildinfo
 
+# macOS
+.DS_Store
+
 # Local dev scripts
 studio-app/playwright-login.js
 

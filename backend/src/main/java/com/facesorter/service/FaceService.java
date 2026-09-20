@@ -83,6 +83,9 @@ public class FaceService {
      */
     @Transactional(readOnly = true)
     public FaceSearchResult searchFaces(FaceSearchRequest request) {
+        if (request.getEventId() == null) {
+            throw new IllegalArgumentException("eventId is required");
+        }
         String pgVectorLiteral = toVectorLiteral(request.getEmbedding());
 
         double threshold = request.getThreshold() != null ? request.getThreshold() : similarityThreshold;

@@ -9,7 +9,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class FaceSearchRequest {
-    @NotNull
+    // Not @NotNull: the customer-facing search endpoint derives this from the
+    // order server-side, so the client isn't required to supply it.
     private Long eventId;
 
     @NotNull
