@@ -1,7 +1,7 @@
 import { Routes, Route, NavLink, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
+import AccountsPage from "./pages/AccountsPage";
 import DashboardPage from "./pages/DashboardPage";
 import StudiosPage from "./pages/StudiosPage";
 import UsersPage from "./pages/UsersPage";
@@ -14,6 +14,7 @@ const navItems = [
   { to: "/users", label: "Users" },
   { to: "/events", label: "Events" },
   { to: "/subscriptions", label: "Subscriptions" },
+  { to: "/accounts", label: "Accounts" },
 ] as const;
 
 function ProtectedLayout() {
@@ -27,6 +28,23 @@ function ProtectedLayout() {
   function handleLogout() {
     logout();
     navigate("/login");
+  }
+
+  // The admin portal is for administrators only; operators use the desktop app. The backend
+  // enforces this too — this just avoids a wall of failing requests.
+  if (user?.role !== "ADMIN") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 max-w-sm text-center">
+          <p className="text-sm text-gray-700 mb-4">
+            This portal is for administrators. Studio operators should use the FaceSorter Studio desktop app.
+          </p>
+          <button onClick={handleLogout} className="text-sm text-blue-600 hover:underline">
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -77,6 +95,7 @@ function ProtectedLayout() {
             <Route path="/users" element={<UsersPage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/subscriptions" element={<SubscriptionsPage />} />
+            <Route path="/accounts" element={<AccountsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
@@ -90,7 +109,6 @@ export default function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
         <Route path="/*" element={<ProtectedLayout />} />
       </Routes>
     </AuthProvider>

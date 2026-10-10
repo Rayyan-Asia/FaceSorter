@@ -29,6 +29,10 @@ export default function LoginPage() {
       const status = err.response?.status;
       if (status === 401) {
         setError('Invalid email or password.');
+      } else if (status === 403) {
+        setError("This studio's subscription is deactivated. Please contact FaceSorter support.");
+      } else if (status === 429) {
+        setError('Too many attempts. Please wait a minute and try again.');
       } else {
         setError('Could not connect to backend. Is it running?');
       }

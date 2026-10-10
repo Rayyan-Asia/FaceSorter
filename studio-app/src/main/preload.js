@@ -18,4 +18,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getDeviceBaseUrl: () => ipcRenderer.invoke('device:getBaseUrl'),
   scanDirectory: (params) => ipcRenderer.invoke('fs:scanDirectory', params),
+  trustPhotoPaths: (params) => ipcRenderer.invoke('photos:trustPaths', params),
 });

@@ -34,6 +34,16 @@ api.interceptors.response.use(
   }
 );
 
+// The local photo server only serves directories it has been told about. Photos registered
+// before that restriction existed are made viewable again by telling it which directories
+// the backend already lists for this studio.
+async function trustPhotoPaths(photos) {
+  const paths = (photos || []).map((p) => p?.localPath).filter(Boolean);
+  if (paths.length && window.electronAPI?.trustPhotoPaths) {
+    try { await window.electronAPI.trustPhotoPaths({ paths }); } catch { /* non-fatal */ }
+  }
+}
+
 // Events
 export const eventsApi = {
   list: (studioId) => studioId
@@ -47,9 +57,15 @@ export const eventsApi = {
 // Photos
 export const photosApi = {
   listByEvent: (eventId) =>
-    api.get(`/studio/events/${eventId}/photos`).then((r) => r.data),
+    api.get(`/studio/events/${eventId}/photos`).then(async (r) => {
+      await trustPhotoPaths(r.data);
+      return r.data;
+    }),
   listUnprocessed: (eventId) =>
-    api.get(`/studio/events/${eventId}/photos/unprocessed`).then((r) => r.data),
+    api.get(`/studio/events/${eventId}/photos/unprocessed`).then(async (r) => {
+      await trustPhotoPaths(r.data);
+      return r.data;
+    }),
   register: (eventId, photos) =>
     api.post('/studio/photos/register', { eventId, photos }).then((r) => r.data),
 };
@@ -70,7 +86,10 @@ export const ordersApi = {
 // Face matching
 export const matchingApi = {
   search: (eventId, embedding, threshold) =>
-    api.post('/faces/search', { eventId, embedding, threshold }).then((r) => r.data),
+    api.post('/faces/search', { eventId, embedding, threshold }).then(async (r) => {
+      await trustPhotoPaths(r.data?.matchedPhotos);
+      return r.data;
+    }),
 };
 
 // Auth

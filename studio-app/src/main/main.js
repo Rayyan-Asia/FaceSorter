@@ -44,9 +44,44 @@ function getLocalIpAddress() {
 const PHOTO_SERVER_PORT = 4567;
 const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.webp']);
 
+// The photo server is reachable by every device on the studio network (other workstations
+// need it to view photos), so it must only ever serve files from directories the operator
+// has actually registered for events - never an arbitrary path on this machine.
+const fsSync = require('fs');
+const photoRoots = new Set();
+const photoRootsFile = () => path.join(app.getPath('userData'), 'photo-roots.json');
+
+function loadPhotoRoots() {
+  try {
+    const saved = JSON.parse(fsSync.readFileSync(photoRootsFile(), 'utf8'));
+    if (Array.isArray(saved)) saved.forEach((d) => typeof d === 'string' && photoRoots.add(d));
+  } catch (_) { /* first run */ }
+}
+
+function addPhotoRoot(dir) {
+  try {
+    if (typeof dir !== 'string' || !path.isAbsolute(dir)) return;
+    const real = fsSync.realpathSync(dir);
+    // Never trust a filesystem root such as "/" or "C:\\".
+    if (path.dirname(real) === real) return;
+    if (!photoRoots.has(real)) {
+      photoRoots.add(real);
+      fsSync.writeFileSync(photoRootsFile(), JSON.stringify([...photoRoots]));
+    }
+  } catch (_) { /* directory missing; ignore */ }
+}
+
+function isUnderPhotoRoot(realFilePath) {
+  for (const root of photoRoots) {
+    if (realFilePath === root || realFilePath.startsWith(root + path.sep)) return true;
+  }
+  return false;
+}
+
 const photoServer = http.createServer((req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  // No CORS headers: <img> loads from other pages/devices still work, but scripts on other
+  // origins (e.g. a website open in the operator's browser) can't read these files.
+  res.setHeader('X-Content-Type-Options', 'nosniff');
 
   const reqUrl = new URL(req.url, `http://localhost:${PHOTO_SERVER_PORT}`);
   if (reqUrl.pathname !== '/photo') {
@@ -70,6 +105,23 @@ const photoServer = http.createServer((req, res) => {
   }
 
   const fs = require('fs');
+  if (!path.isAbsolute(filePath)) {
+    res.writeHead(400);
+    res.end();
+    return;
+  }
+
+  // Resolve symlinks and ".." first, then require the real path to sit inside a registered root.
+  fs.realpath(filePath, (realErr, resolvedPath) => {
+    if (realErr || !isUnderPhotoRoot(resolvedPath)) {
+      res.writeHead(realErr ? 404 : 403);
+      res.end();
+      return;
+    }
+    serveFile(resolvedPath);
+  });
+
+  function serveFile(filePath) {
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
       res.writeHead(404);
@@ -105,8 +157,10 @@ const photoServer = http.createServer((req, res) => {
       fs.createReadStream(filePath).pipe(res);
     }
   });
+  }
 });
 
+loadPhotoRoots();
 photoServer.listen(PHOTO_SERVER_PORT, () => {
   console.log(`Photo file server listening on port ${PHOTO_SERVER_PORT}`);
 });
@@ -283,10 +337,26 @@ ipcMain.handle('device:getBaseUrl', () => {
   return `http://${getLocalIpAddress()}:${PHOTO_SERVER_PORT}`;
 });
 
+// IPC: Trust the directories of photos the backend already lists for this studio, so photos
+// registered before the allowlist existed keep displaying. Image files only.
+ipcMain.handle('photos:trustPaths', async (event, { paths }) => {
+  if (!Array.isArray(paths)) return 0;
+  let added = 0;
+  for (const p of paths.slice(0, 20000)) {
+    if (typeof p === 'string' && ALLOWED_EXTENSIONS.has(path.extname(p).toLowerCase())) {
+      const before = photoRoots.size;
+      addPhotoRoot(path.dirname(p));
+      if (photoRoots.size > before) added++;
+    }
+  }
+  return added;
+});
+
 // IPC: Scan a directory and return all image files
 ipcMain.handle('fs:scanDirectory', async (event, { dirPath }) => {
   const fs = require('fs');
   const crypto = require('crypto');
+  addPhotoRoot(dirPath);
   try {
     const entries = fs.readdirSync(dirPath, { withFileTypes: true });
     const imageEntries = entries.filter(

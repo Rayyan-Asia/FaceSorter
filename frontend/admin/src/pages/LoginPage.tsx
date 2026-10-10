@@ -1,5 +1,5 @@
 import { useState, FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { login } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
@@ -20,8 +20,11 @@ export default function LoginPage() {
       const res = await login(email, password);
       setAuth(res.token, { email: res.email, role: res.role, studioId: res.studioId });
       navigate("/");
-    } catch {
-      setError("Invalid email or password.");
+    } catch (err: any) {
+      const status = err.response?.status;
+      if (status === 429) setError("Too many attempts. Please wait a minute and try again.");
+      else if (status === 403) setError("This studio's subscription is deactivated.");
+      else setError("Invalid email or password.");
     } finally {
       setLoading(false);
     }
@@ -74,17 +77,13 @@ export default function LoginPage() {
             {loading ? "Signing in..." : "Sign in"}
           </button>
 
-          <p className="text-center text-sm text-gray-500">
-            No account?{" "}
-            <Link to="/register" className="text-blue-600 hover:underline">
-              Register
-            </Link>
-          </p>
         </form>
 
-        <p className="text-center text-xs text-gray-400 mt-4">
-          Default: admin@facesorter.com / Admin1234!
-        </p>
+        {import.meta.env.DEV && (
+          <p className="text-center text-xs text-gray-400 mt-4">
+            Dev default: admin@facesorter.com / Admin1234!
+          </p>
+        )}
       </div>
     </div>
   );
