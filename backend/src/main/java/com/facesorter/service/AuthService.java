@@ -4,12 +4,14 @@ import com.facesorter.dto.AuthResponse;
 import com.facesorter.dto.LoginRequest;
 import com.facesorter.dto.RegisterRequest;
 import com.facesorter.entity.Account;
+import com.facesorter.entity.AccountRole;
 import com.facesorter.entity.Studio;
 import com.facesorter.repository.AccountRepository;
 import com.facesorter.repository.StudioRepository;
 import com.facesorter.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +32,12 @@ public class AuthService {
 
         Studio studio = null;
         if (request.getStudioId() != null) {
-            studio = studioRepository.findById(request.getStudioId()).orElse(null);
+            studio = studioRepository.findById(request.getStudioId())
+                    .orElseThrow(() -> new IllegalArgumentException("Unknown studio"));
+        }
+        // An operator without a studio could never be scoped to anything; refuse to create one.
+        if (request.getRole() == AccountRole.STUDIO_OPERATOR && studio == null) {
+            throw new IllegalArgumentException("studioId is required for studio operators");
         }
 
         Account account = Account.builder()
@@ -51,6 +58,12 @@ public class AuthService {
 
         if (!passwordEncoder.matches(request.getPassword(), account.getPasswordHash())) {
             throw new IllegalArgumentException("Invalid credentials");
+        }
+
+        // Subscription gating (NFR-4): a deactivated studio's operators cannot start a session.
+        if (account.getRole() == AccountRole.STUDIO_OPERATOR && account.getStudio() != null
+                && !Boolean.TRUE.equals(account.getStudio().getActive())) {
+            throw new AccessDeniedException("Studio is deactivated");
         }
 
         return toResponse(account, jwtUtil.generate(account));

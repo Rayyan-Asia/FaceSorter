@@ -41,6 +41,12 @@ public class FaceService {
         Event event = eventRepository.findById(request.getEventId())
                 .orElseThrow(() -> new NoSuchElementException("Event not found: " + request.getEventId()));
 
+        // The photo must belong to the event the embeddings are being filed under; otherwise
+        // faces could be injected into another event's search index.
+        if (!photo.getEvent().getId().equals(event.getId())) {
+            throw new IllegalArgumentException("Photo does not belong to event " + event.getId());
+        }
+
         for (float[] embeddingVector : request.getEmbeddings()) {
             String pgVectorLiteral = toVectorLiteral(embeddingVector);
 
@@ -167,8 +173,12 @@ public class FaceService {
      * Used by the customer portal step 2: after the customer confirms which embeddings are them.
      */
     @Transactional(readOnly = true)
-    public FaceSearchResult getPhotosByEmbeddingIds(List<Long> embeddingIds) {
-        List<PersonPhotoLink> links = personPhotoLinkRepository.findByFaceEmbeddingIdIn(embeddingIds);
+    public FaceSearchResult getPhotosByEmbeddingIds(Long eventId, List<Long> embeddingIds) {
+        // Only embeddings that belong to the order's event may be resolved; ids from other
+        // events are silently ignored so they can't be used to read another event's photos.
+        List<PersonPhotoLink> links = personPhotoLinkRepository.findByFaceEmbeddingIdIn(embeddingIds).stream()
+                .filter(link -> link.getFaceEmbedding().getEvent().getId().equals(eventId))
+                .toList();
 
         Map<Long, PersonPhotoLink> bestPerPhoto = new LinkedHashMap<>();
         for (PersonPhotoLink link : links) {

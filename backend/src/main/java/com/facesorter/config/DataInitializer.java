@@ -17,16 +17,20 @@ public class DataInitializer implements CommandLineRunner {
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /** Initial admin password; override with ADMIN_INITIAL_PASSWORD for any non-local deployment. */
+    @org.springframework.beans.factory.annotation.Value("${facesorter.admin.initial-password:Admin1234!}")
+    private String initialAdminPassword;
+
     @Override
     public void run(String... args) {
         if (accountRepository.findByEmail("admin@facesorter.com").isEmpty()) {
             Account admin = Account.builder()
                     .email("admin@facesorter.com")
-                    .passwordHash(passwordEncoder.encode("Admin1234!"))
+                    .passwordHash(passwordEncoder.encode(initialAdminPassword))
                     .role(AccountRole.ADMIN)
                     .build();
             accountRepository.save(admin);
-            log.info("Seeded default admin account: admin@facesorter.com / Admin1234!");
+            log.info("Seeded default admin account: admin@facesorter.com (change its password after first login)");
         }
     }
 }

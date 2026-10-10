@@ -24,6 +24,12 @@ public class CustomerController {
         return ResponseEntity.ok(orderService.getOrder(orderId));
     }
 
+    /** Public callers must not learn the studio machine's filesystem layout. */
+    private static FaceSearchResult withoutLocalPaths(FaceSearchResult result) {
+        result.getMatchedPhotos().forEach(p -> p.setLocalPath(null));
+        return result;
+    }
+
     /**
      * Step 1 of face-based photo retrieval.
      * Customer submits their face embedding; returns the top 10 most similar face embeddings
@@ -46,7 +52,9 @@ public class CustomerController {
     public ResponseEntity<FaceSearchResult> getPhotosByEmbeddings(
             @PathVariable Long orderId,
             @Valid @RequestBody PhotosByEmbeddingsRequest request) {
-        return ResponseEntity.ok(faceService.getPhotosByEmbeddingIds(request.getEmbeddingIds()));
+        OrderDto order = orderService.getOrder(orderId);
+        return ResponseEntity.ok(withoutLocalPaths(
+                faceService.getPhotosByEmbeddingIds(order.getEventId(), request.getEmbeddingIds())));
     }
 
     /**
@@ -56,6 +64,7 @@ public class CustomerController {
     public ResponseEntity<OrderDto> selectPhotos(
             @PathVariable Long orderId,
             @Valid @RequestBody AddOrderItemsRequest request) {
+        orderService.requireOpenForCustomer(orderId);
         return ResponseEntity.ok(orderService.addOrderItems(orderId, request));
     }
 
@@ -64,6 +73,7 @@ public class CustomerController {
      */
     @PutMapping("/orders/{orderId}/confirm")
     public ResponseEntity<OrderDto> confirmOrder(@PathVariable Long orderId) {
+        orderService.requireOpenForCustomer(orderId);
         return ResponseEntity.ok(orderService.updateOrderStatus(orderId, "CONFIRMED"));
     }
 }

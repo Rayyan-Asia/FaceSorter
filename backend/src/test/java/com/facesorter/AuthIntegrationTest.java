@@ -15,11 +15,13 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
     @Test
     void registerThenLoginReturnsWorkingToken() {
         String email = "test-" + uniqueSuffix() + "@example.com";
+        String adminToken = loginAsSeededAdmin();
         RegisterRequest register = RegisterRequest.builder()
-                .email(email).password("Password123!").role(AccountRole.STUDIO_OPERATOR).build();
+                .email(email).password("Password123!").role(AccountRole.STUDIO_OPERATOR)
+                .studioId(createStudioAsAdmin(adminToken)).build();
 
-        ResponseEntity<AuthResponse> registerResponse =
-                restTemplate.postForEntity("/api/auth/register", register, AuthResponse.class);
+        ResponseEntity<AuthResponse> registerResponse = restTemplate.exchange("/api/auth/register",
+                org.springframework.http.HttpMethod.POST, authEntity(adminToken, register), AuthResponse.class);
 
         assertThat(registerResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(registerResponse.getBody().getToken()).isNotBlank();
@@ -40,9 +42,11 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
         RegisterRequest register = RegisterRequest.builder()
                 .email(email).password("Password123!").role(AccountRole.ADMIN).build();
 
-        restTemplate.postForEntity("/api/auth/register", register, AuthResponse.class);
-        ResponseEntity<AuthResponse> second =
-                restTemplate.postForEntity("/api/auth/register", register, AuthResponse.class);
+        String adminToken = loginAsSeededAdmin();
+        restTemplate.exchange("/api/auth/register", org.springframework.http.HttpMethod.POST,
+                authEntity(adminToken, register), AuthResponse.class);
+        ResponseEntity<AuthResponse> second = restTemplate.exchange("/api/auth/register",
+                org.springframework.http.HttpMethod.POST, authEntity(adminToken, register), AuthResponse.class);
 
         assertThat(second.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     }
@@ -55,8 +59,8 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
                 .role(AccountRole.ADMIN)
                 .build();
 
-        ResponseEntity<String> response =
-                restTemplate.postForEntity("/api/auth/register", register, String.class);
+        ResponseEntity<String> response = restTemplate.exchange("/api/auth/register",
+                org.springframework.http.HttpMethod.POST, authEntity(loginAsSeededAdmin(), register), String.class);
 
         // Regression test: validation failures must surface as 400, not be swallowed
         // as an opaque 403 by the security filter chain's handling of the /error forward.
@@ -66,8 +70,9 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
     @Test
     void loginWithWrongPasswordReturns401() {
         String email = "test-" + uniqueSuffix() + "@example.com";
-        restTemplate.postForEntity("/api/auth/register",
-                RegisterRequest.builder().email(email).password("Password123!").role(AccountRole.ADMIN).build(),
+        restTemplate.exchange("/api/auth/register", org.springframework.http.HttpMethod.POST,
+                authEntity(loginAsSeededAdmin(),
+                        RegisterRequest.builder().email(email).password("Password123!").role(AccountRole.ADMIN).build()),
                 AuthResponse.class);
 
         ResponseEntity<AuthResponse> response = restTemplate.postForEntity("/api/auth/login",
@@ -100,6 +105,43 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getRole()).isEqualTo("ADMIN");
+    }
+
+    @Test
+    void anonymousCannotRegisterAnAdminAccount() {
+        RegisterRequest register = RegisterRequest.builder()
+                .email("evil-" + uniqueSuffix() + "@example.com").password("Password123!")
+                .role(AccountRole.ADMIN).build();
+
+        ResponseEntity<String> response =
+                restTemplate.postForEntity("/api/auth/register", register, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void operatorCannotRegisterAccounts() {
+        String operatorToken = registerAndLogin(AccountRole.STUDIO_OPERATOR, null);
+        RegisterRequest register = RegisterRequest.builder()
+                .email("evil-" + uniqueSuffix() + "@example.com").password("Password123!")
+                .role(AccountRole.ADMIN).build();
+
+        ResponseEntity<String> response = restTemplate.exchange("/api/auth/register",
+                org.springframework.http.HttpMethod.POST, authEntity(operatorToken, register), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void operatorAccountRequiresAStudio() {
+        RegisterRequest register = RegisterRequest.builder()
+                .email("op-" + uniqueSuffix() + "@example.com").password("Password123!")
+                .role(AccountRole.STUDIO_OPERATOR).build();
+
+        ResponseEntity<String> response = restTemplate.exchange("/api/auth/register",
+                org.springframework.http.HttpMethod.POST, authEntity(loginAsSeededAdmin(), register), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test

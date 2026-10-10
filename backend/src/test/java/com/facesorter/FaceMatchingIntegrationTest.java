@@ -48,7 +48,7 @@ class FaceMatchingIntegrationTest extends AbstractIntegrationTest {
     private void submitEmbedding(TestEvent ctx, Long photoId, float[] embedding) {
         SubmitEmbeddingsRequest req = SubmitEmbeddingsRequest.builder()
                 .photoId(photoId).eventId(ctx.eventId()).embeddings(List.of(embedding)).build();
-        ResponseEntity<Void> response = restTemplate.postForEntity("/api/faces/embeddings", req, Void.class);
+        ResponseEntity<Void> response = restTemplate.exchange("/api/faces/embeddings", HttpMethod.POST, authEntity(ctx.token(), req), Void.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
@@ -68,7 +68,7 @@ class FaceMatchingIntegrationTest extends AbstractIntegrationTest {
         submitEmbedding(ctx, photo3.getId(), personB);
 
         FaceSearchRequest search = FaceSearchRequest.builder().eventId(ctx.eventId()).embedding(personA).build();
-        ResponseEntity<FaceSearchResult> response = restTemplate.postForEntity("/api/faces/search", search, FaceSearchResult.class);
+        ResponseEntity<FaceSearchResult> response = restTemplate.exchange("/api/faces/search", HttpMethod.POST, authEntity(ctx.token(), search), FaceSearchResult.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getMatchedPhotos())
@@ -90,7 +90,7 @@ class FaceMatchingIntegrationTest extends AbstractIntegrationTest {
         // Both photos should be linked to the SAME underlying face_embedding (person dedup),
         // which is only observable indirectly via the customer 2-step flow below.
         FaceSearchRequest search = FaceSearchRequest.builder().eventId(ctx.eventId()).embedding(person).build();
-        FaceSearchResult result = restTemplate.postForEntity("/api/faces/search", search, FaceSearchResult.class).getBody();
+        FaceSearchResult result = restTemplate.exchange("/api/faces/search", HttpMethod.POST, authEntity(ctx.token(), search), FaceSearchResult.class).getBody();
 
         assertThat(result.getTotalMatches()).isEqualTo(2);
     }
@@ -105,7 +105,7 @@ class FaceMatchingIntegrationTest extends AbstractIntegrationTest {
         submitEmbedding(eventB, photoInB.getId(), sharedIdentity);
 
         FaceSearchRequest searchInA = FaceSearchRequest.builder().eventId(eventA.eventId()).embedding(sharedIdentity).build();
-        FaceSearchResult result = restTemplate.postForEntity("/api/faces/search", searchInA, FaceSearchResult.class).getBody();
+        FaceSearchResult result = restTemplate.exchange("/api/faces/search", HttpMethod.POST, authEntity(eventA.token(), searchInA), FaceSearchResult.class).getBody();
 
         assertThat(result.getMatchedPhotos()).isEmpty();
     }
@@ -120,7 +120,7 @@ class FaceMatchingIntegrationTest extends AbstractIntegrationTest {
         submitEmbedding(ctx, photo.getId(), identityVector(999)); // different vector, but photo already processed
 
         FaceSearchRequest search = FaceSearchRequest.builder().eventId(ctx.eventId()).embedding(person).build();
-        FaceSearchResult result = restTemplate.postForEntity("/api/faces/search", search, FaceSearchResult.class).getBody();
+        FaceSearchResult result = restTemplate.exchange("/api/faces/search", HttpMethod.POST, authEntity(ctx.token(), search), FaceSearchResult.class).getBody();
 
         // Second submission must be a no-op — only the first embedding should be searchable.
         assertThat(result.getMatchedPhotos()).extracting(FaceSearchResult.MatchedPhoto::getFilename)
@@ -130,7 +130,7 @@ class FaceMatchingIntegrationTest extends AbstractIntegrationTest {
     @Test
     void searchWithoutEventIdReturns400() {
         FaceSearchRequest search = FaceSearchRequest.builder().embedding(identityVector(1)).build();
-        ResponseEntity<String> response = restTemplate.postForEntity("/api/faces/search", search, String.class);
+        ResponseEntity<String> response = restTemplate.exchange("/api/faces/search", HttpMethod.POST, authEntity(registerAndLogin(AccountRole.ADMIN, null), search), String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
@@ -139,7 +139,7 @@ class FaceMatchingIntegrationTest extends AbstractIntegrationTest {
         TestEvent ctx = setupEvent();
         SubmitEmbeddingsRequest req = SubmitEmbeddingsRequest.builder()
                 .photoId(999_999L).eventId(ctx.eventId()).embeddings(List.of(identityVector(1))).build();
-        ResponseEntity<String> response = restTemplate.postForEntity("/api/faces/embeddings", req, String.class);
+        ResponseEntity<String> response = restTemplate.exchange("/api/faces/embeddings", HttpMethod.POST, authEntity(ctx.token(), req), String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

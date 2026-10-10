@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,11 @@ public class OrderService {
     private final EventRepository eventRepository;
     private final StudioRepository studioRepository;
     private final UserRepository userRepository;
+
+    /** Statuses the system uses; anything else is rejected rather than stored. */
+    private static final Set<String> VALID_STATUSES = Set.of("CREATED", "PENDING", "CONFIRMED", "FULFILLED");
+    /** Statuses in which a customer may still choose photos and confirm. */
+    private static final Set<String> CUSTOMER_OPEN_STATUSES = Set.of("CREATED", "PENDING");
 
     /**
      * Create an empty order linked to an event.
@@ -100,6 +106,10 @@ public class OrderService {
         for (Long photoId : request.getPhotoIds()) {
             Photo photo = photoRepository.findById(photoId)
                     .orElseThrow(() -> new NoSuchElementException("Photo not found: " + photoId));
+            // Photos can only be ordered from the event the order was created for.
+            if (!photo.getEvent().getId().equals(order.getEvent().getId())) {
+                throw new IllegalArgumentException("Photo " + photoId + " does not belong to this order's event");
+            }
 
             OrderItemPhoto oip = OrderItemPhoto.builder()
                     .orderItem(orderItem)
@@ -113,12 +123,29 @@ public class OrderService {
 
     @Transactional
     public OrderDto updateOrderStatus(Long orderId, String status) {
+        if (status == null || !VALID_STATUSES.contains(status)) {
+            throw new IllegalArgumentException("Invalid status: " + status);
+        }
+
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
 
         order.setStatus(status);
         order = orderRepository.save(order);
         return toDto(order);
+    }
+
+    /**
+     * Guard for the unauthenticated customer endpoints: once the studio has confirmed or
+     * fulfilled an order, a customer holding only the order id must not be able to alter it.
+     */
+    @Transactional(readOnly = true)
+    public void requireOpenForCustomer(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
+        if (!CUSTOMER_OPEN_STATUSES.contains(order.getStatus())) {
+            throw new IllegalStateException("Order is no longer open for changes");
+        }
     }
 
     private OrderDto toDto(Order order) {

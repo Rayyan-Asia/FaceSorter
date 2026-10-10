@@ -73,6 +73,17 @@ Input Photos → Haar Cascade Face Detection → Face Cropping →
 3. Customer opens camera, takes self-photo → embedding extracted → matching photos retrieved
 4. Customer selects photos → order items saved → operator fulfills and prints
 
+## Security Model (enforced; keep these invariants)
+
+- **Accounts are admin-provisioned.** `POST /api/auth/register` requires an authenticated `ADMIN`; there is no self-signup. An operator account must have a studio. Admins create accounts in the admin portal's **Accounts** page.
+- **Tenant isolation.** Studio operators can only access their own studio's events, photos, orders and embeddings. Every `/api/studio/**` and `/api/faces/**` handler must go through `TenantAccess` (`requireStudio/requireEvent/requireOrder/requirePhoto`). Admins are unrestricted. Never trust a `studioId`/`eventId` from a request body without it.
+- **`/api/faces/**` is operator/admin only** (embeddings are biometric data). `/api/customer/**` and `/api/photos/{id}` are public by design (order-id based customer flow); they are rate limited, event-scoped, only mutable while the order is `CREATED`/`PENDING`, and never return local file paths.
+- **401 vs 403.** Missing/invalid/expired token -> 401 (the desktop app logs out and clears the token on expiry/401). Authenticated but not allowed -> 403. A deactivated studio's operators get 403 on login and on every request.
+- **Order status** is whitelisted: `CREATED`, `PENDING`, `CONFIRMED`, `FULFILLED`.
+- **Secrets.** `JWT_SECRET` must be set (>=32 bytes) outside local dev; the `prod` profile refuses the built-in default. Seeded admin password is `FACESORTER_ADMIN_INITIAL_PASSWORD` (defaults to the dev password).
+- **Desktop photo server (port 4567)** serves only directories the operator registered (persisted in the app's userData `photo-roots.json`), resolves symlinks/`..`, image extensions only, and sends no CORS headers.
+- **Backend tests need JDK 21 + Docker** (Testcontainers). Run them in the `maven:3.9.9-eclipse-temurin-21` container if the host JDK is older.
+
 ## Conventions
 
 - Similarity threshold: configurable in `is_embedding_similar`; optimize for recall over precision

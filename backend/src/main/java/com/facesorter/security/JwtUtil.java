@@ -20,6 +20,27 @@ public class JwtUtil {
     @Value("${facesorter.jwt.expiry-hours:24}")
     private long expiryHours;
 
+    private static final String DEV_DEFAULT_SECRET = "facesorter-dev-secret-key-change-in-production-2026";
+
+    @Value("${spring.profiles.active:}")
+    private String activeProfiles;
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JwtUtil.class);
+
+    /** Refuse to run a production profile with a guessable/default signing key (forgeable admin tokens). */
+    @jakarta.annotation.PostConstruct
+    void validateSecret() {
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("JWT secret must be at least 32 bytes");
+        }
+        if (DEV_DEFAULT_SECRET.equals(secret)) {
+            if (activeProfiles.contains("prod")) {
+                throw new IllegalStateException("JWT_SECRET must be set to a non-default value in the prod profile");
+            }
+            log.warn("Using the built-in development JWT secret. Set JWT_SECRET before deploying.");
+        }
+    }
+
     private SecretKey key() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }

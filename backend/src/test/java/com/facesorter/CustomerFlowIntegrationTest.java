@@ -39,8 +39,9 @@ class CustomerFlowIntegrationTest extends AbstractIntegrationTest {
                 PhotoDto[].class).getBody()[0].getId();
 
         float[] embedding = identityVector(700);
-        restTemplate.postForEntity("/api/faces/embeddings", SubmitEmbeddingsRequest.builder()
-                .photoId(photoId).eventId(eventId).embeddings(List.of(embedding)).build(), Void.class);
+        restTemplate.exchange("/api/faces/embeddings", HttpMethod.POST, authEntity(operatorToken,
+                SubmitEmbeddingsRequest.builder()
+                        .photoId(photoId).eventId(eventId).embeddings(List.of(embedding)).build()), Void.class);
 
         Long orderId = restTemplate.exchange("/api/studio/orders", HttpMethod.POST,
                 authEntity(operatorToken, CreateOrderRequest.builder().eventId(eventId).build()), OrderDto.class)

@@ -30,6 +30,12 @@ public class PhotoController {
             return ResponseEntity.notFound().build();
         }
 
+        // Only ever redirect to http(s) URLs; never javascript:, file:, data: etc.
+        String lower = photo.getUrl().trim().toLowerCase();
+        if (!lower.startsWith("http://") && !lower.startsWith("https://")) {
+            return ResponseEntity.notFound().build();
+        }
+
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, photo.getUrl())
                 .build();

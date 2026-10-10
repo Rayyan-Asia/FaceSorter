@@ -26,7 +26,13 @@ import java.util.UUID;
  *
  * The container is started once per JVM and shared across all subclasses.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        // Tests share one client IP and log in hundreds of times; the limiter has its own unit test.
+        properties = {
+                "facesorter.rate-limit.login-per-minute=1000000",
+                "facesorter.rate-limit.customer-per-minute=1000000"
+        })
 public abstract class AbstractIntegrationTest {
 
     static final PostgreSQLContainer<?> POSTGRES =
@@ -54,16 +60,33 @@ public abstract class AbstractIntegrationTest {
         return UUID.randomUUID().toString().substring(0, 8);
     }
 
+    /**
+     * Creates an account the way production does: an authenticated admin calls /register.
+     * A studio operator always needs a studio, so one is created when none is supplied.
+     */
     protected String registerAndLogin(AccountRole role, Long studioId) {
+        String adminToken = loginAsSeededAdmin();
+        Long effectiveStudioId = studioId;
+        if (role == AccountRole.STUDIO_OPERATOR && effectiveStudioId == null) {
+            effectiveStudioId = createStudioAsAdmin(adminToken);
+        }
         String email = "test-" + uniqueSuffix() + "@example.com";
         RegisterRequest request = RegisterRequest.builder()
                 .email(email)
                 .password("Password123!")
                 .role(role)
-                .studioId(studioId)
+                .studioId(effectiveStudioId)
                 .build();
-        AuthResponse response = restTemplate.postForObject("/api/auth/register", request, AuthResponse.class);
+        AuthResponse response = restTemplate.exchange("/api/auth/register", org.springframework.http.HttpMethod.POST,
+                authEntity(adminToken, request), AuthResponse.class).getBody();
         return response.getToken();
+    }
+
+    protected Long createStudioAsAdmin(String adminToken) {
+        com.facesorter.dto.CreateStudioRequest req = com.facesorter.dto.CreateStudioRequest.builder()
+                .name("Studio " + uniqueSuffix()).email("studio-" + uniqueSuffix() + "@example.com").build();
+        return restTemplate.exchange("/api/admin/studios", org.springframework.http.HttpMethod.POST,
+                authEntity(adminToken, req), com.facesorter.dto.StudioDto.class).getBody().getId();
     }
 
     protected String loginAsSeededAdmin() {

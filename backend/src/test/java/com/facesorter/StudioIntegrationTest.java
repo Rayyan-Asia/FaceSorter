@@ -52,12 +52,23 @@ class StudioIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void createEventWithNonexistentStudioReturns404() {
+    void operatorCannotCreateEventForAStudioThatIsNotTheirs() {
         String operatorToken = registerAndLogin(AccountRole.STUDIO_OPERATOR, null);
+        CreateEventRequest otherStudio = CreateEventRequest.builder().studioId(999_999L).name("Ghost").build();
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/studio/events", HttpMethod.POST, authEntity(operatorToken, otherStudio), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void adminCreatingEventForNonexistentStudioReturns404() {
+        String adminToken = loginAsSeededAdmin();
         CreateEventRequest badStudio = CreateEventRequest.builder().studioId(999_999L).name("Ghost").build();
 
         ResponseEntity<String> response = restTemplate.exchange(
-                "/api/studio/events", HttpMethod.POST, authEntity(operatorToken, badStudio), String.class);
+                "/api/studio/events", HttpMethod.POST, authEntity(adminToken, badStudio), String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
@@ -145,7 +156,7 @@ class StudioIntegrationTest extends AbstractIntegrationTest {
 
         SubmitEmbeddingsRequest submit = SubmitEmbeddingsRequest.builder()
                 .photoId(photo.getId()).eventId(event.getId()).embeddings(List.of(identityVector(1))).build();
-        restTemplate.postForEntity("/api/faces/embeddings", submit, Void.class);
+        restTemplate.exchange("/api/faces/embeddings", HttpMethod.POST, authEntity(operatorToken, submit), Void.class);
 
         ResponseEntity<PhotoDto[]> afterProcessing = restTemplate.exchange(
                 "/api/studio/events/" + event.getId() + "/photos/unprocessed", HttpMethod.GET, authEntity(operatorToken), PhotoDto[].class);
@@ -194,9 +205,9 @@ class StudioIntegrationTest extends AbstractIntegrationTest {
                 authEntity(operatorToken, CreateOrderRequest.builder().eventId(event.getId()).build()), OrderDto.class).getBody();
 
         ResponseEntity<OrderDto> response = restTemplate.exchange(
-                "/api/studio/orders/" + order.getId() + "/status?status=PROCESSING",
+                "/api/studio/orders/" + order.getId() + "/status?status=FULFILLED",
                 HttpMethod.PUT, authEntity(operatorToken), OrderDto.class);
 
-        assertThat(response.getBody().getStatus()).isEqualTo("PROCESSING");
+        assertThat(response.getBody().getStatus()).isEqualTo("FULFILLED");
     }
 }

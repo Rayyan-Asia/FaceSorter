@@ -25,7 +25,8 @@ public class AuthController {
         try {
             return ResponseEntity.ok(authService.register(request));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            boolean duplicate = "Email already registered".equals(e.getMessage());
+            return ResponseEntity.status(duplicate ? HttpStatus.CONFLICT : HttpStatus.BAD_REQUEST).build();
         }
     }
 
@@ -35,6 +36,9 @@ public class AuthController {
             return ResponseEntity.ok(authService.login(request));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            // Valid credentials, but the studio's subscription is deactivated.
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 

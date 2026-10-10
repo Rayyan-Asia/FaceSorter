@@ -4,6 +4,7 @@ import com.facesorter.security.AccountDetailsService;
 import com.facesorter.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.context.annotation.Configuration;
@@ -39,9 +40,13 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error").permitAll()
+                        // Creating accounts (and choosing their role) is an admin-only action.
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register").hasRole("ADMIN")
                         .requestMatchers("/api/auth/**").permitAll()
+                        // Customer self-service by order id (product requirement FR-15).
                         .requestMatchers("/api/customer/**").permitAll()
-                        .requestMatchers("/api/faces/**").permitAll()
+                        // Face processing/search is studio-internal: embeddings are biometric data.
+                        .requestMatchers("/api/faces/**").hasAnyRole("ADMIN", "STUDIO_OPERATOR")
                         .requestMatchers("/api/photos/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/studio/**").hasAnyRole("ADMIN", "STUDIO_OPERATOR")
