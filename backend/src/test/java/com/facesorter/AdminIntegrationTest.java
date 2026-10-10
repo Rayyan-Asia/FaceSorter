@@ -27,7 +27,7 @@ class AdminIntegrationTest extends AbstractIntegrationTest {
     @Test
     void unauthenticatedIsBlockedFromAdminEndpoints() {
         ResponseEntity<String> response = restTemplate.getForEntity("/api/admin/studios", String.class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test

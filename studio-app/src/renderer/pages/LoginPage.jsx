@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { authApi } from '../services/api';
 import Spinner from '../components/Spinner';
@@ -14,8 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState(null);
 
   if (isAuthenticated) {
-    navigate('/events', { replace: true });
-    return null;
+    return <Navigate to="/events" replace />;
   }
 
   const handleLogin = async (e) => {

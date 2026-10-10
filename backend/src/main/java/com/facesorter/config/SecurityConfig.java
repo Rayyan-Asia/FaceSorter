@@ -4,6 +4,8 @@ import com.facesorter.security.AccountDetailsService;
 import com.facesorter.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -45,6 +47,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/studio/**").hasAnyRole("ADMIN", "STUDIO_OPERATOR")
                         .anyRequest().authenticated()
                 )
+                // Missing/invalid/expired token -> 401 (not Spring's default 403) so clients can
+                // tell "log in again" apart from "authenticated but not allowed".
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -103,6 +103,28 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void protectedEndpointWithInvalidTokenReturns401() {
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/studio/events?studioId=1", org.springframework.http.HttpMethod.GET,
+                authEntity("not.a.valid-token"), String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void protectedEndpointWithoutTokenReturns401() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/api/studio/events?studioId=1", String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void operatorOnAdminEndpointStillReturns403() {
+        String token = registerAndLogin(AccountRole.STUDIO_OPERATOR, null);
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/admin/studios", org.springframework.http.HttpMethod.GET, authEntity(token), String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
     void seededAdminAccountCanLogIn() {
         String token = loginAsSeededAdmin();
         assertThat(token).isNotBlank();

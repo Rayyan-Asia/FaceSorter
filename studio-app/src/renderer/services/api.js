@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore, isTokenExpired } from '../store/authStore';
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
@@ -11,8 +11,14 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
+  const { token, logout } = useAuthStore.getState();
   if (token) {
+    if (isTokenExpired(token)) {
+      // Expired while the app was open (e.g. machine slept past the timer): clear the
+      // session now instead of sending a doomed request.
+      logout();
+      return Promise.reject(new axios.CanceledError('Session expired'));
+    }
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
